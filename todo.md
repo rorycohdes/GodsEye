@@ -1,3 +1,5 @@
+
+Features
 web clipping extension to add information directly to a specific database
 setting up webscraping jobs
 pdf support
@@ -14,3 +16,14 @@ webscrape y combinator, linkedin, reddit, hubspot blogs, product hunt, webscrape
 view for the webscraping databases like the hiring cafe but notion esc (maybe different views)
 
 far future (podcast feature)
+
+creates a blog about new trend
+
+
+notifications with a wrap of a product
+
+
+should have a video clips feature to annotate only a section of a video
+with a preview of the video and a video clip
+
+Technicalities
