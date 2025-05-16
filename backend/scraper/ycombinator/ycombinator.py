@@ -1,14 +1,42 @@
 import asyncio
 import json
 import time
+import random
+import requests
 from datetime import datetime
 from pathlib import Path
 from playwright.async_api import async_playwright
+import sys
+import os
 
-async def scrape_ycombinator_companies():
+# Add the parent directory to sys.path to import from backend.utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from utils.proxy_manager import get_random_proxy, parse_proxy, get_proxy_info_string, get_random_user_agent
+
+async def scrape_ycombinator_companies(proxies=None, use_proxy=True, limit_pages=None):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)  # Set to True for production
-        page = await browser.new_page()
+        browser_options = {}
+        
+        # Configure proxy if available and enabled
+        if proxies and use_proxy:
+            try:
+                proxy_dict = get_random_proxy(proxies)
+                proxy_config = parse_proxy(proxy_dict)
+                browser_options["proxy"] = proxy_config
+                print(f"Using proxy: {get_proxy_info_string(proxy_dict)}")
+            except Exception as e:
+                print(f"Error setting up proxy: {e}. Continuing without proxy.")
+        
+        # Launch browser with proxy if configured
+        browser = await p.chromium.launch(headless=False, **browser_options)  # Set to True for production
+        
+        # Create a new context with a random user agent
+        context = await browser.new_context(
+            user_agent=get_random_user_agent()
+        )
+        
+        # Create a new page from the context
+        page = await context.new_page()
         
         try:
             # Navigate to the companies page
@@ -99,6 +127,11 @@ async def scrape_ycombinator_companies():
                 match = re.search(r'of (\d+)', pagination_text)
                 if match:
                     total_pages = int(match.group(1))
+                    
+                    # Apply page limit if specified
+                    if limit_pages and limit_pages > 0:
+                        total_pages = min(total_pages, limit_pages)
+                        
                     print(f"Found pagination with {total_pages} total pages")
                     
                     # Loop through all pages
@@ -138,12 +171,45 @@ async def scrape_ycombinator_companies():
         finally:
             await browser.close()
 
+# Function to load proxies from an API or file
+async def load_proxies(proxy_api_url=None):
+    """
+    Load proxies from an API endpoint or return a default list.
+    
+    Args:
+        proxy_api_url: URL to fetch proxies from
+        
+    Returns:
+        List of proxy dictionaries
+    """
+    if proxy_api_url:
+        try:
+            response = requests.get(proxy_api_url)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"Failed to load proxies from API: {e}")
+    
+    # Return a default list or empty list if API fails
+    # You should replace this with your actual proxy list or API
+    return [
+        {
+            "username": "your_username",
+            "password": "your_password",
+            "proxy_address": "proxy.example.com",
+            "port": "8080",
+            "country_code": "US"
+        }
+    ]
+
 # Function to run the scraper periodically
-async def run_periodic_scraper(interval_hours=24):
+async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, use_proxy=True):
     while True:
         print(f"Starting scrape at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         try:
-            await scrape_ycombinator_companies()
+            # Load proxies before each scrape to ensure fresh proxies
+            proxies = await load_proxies(proxy_api_url) if use_proxy else None
+            await scrape_ycombinator_companies(proxies=proxies, use_proxy=use_proxy)
         except Exception as e:
             print(f"Scrape failed: {e}")
         
@@ -152,23 +218,32 @@ async def run_periodic_scraper(interval_hours=24):
         print(f"Next scrape scheduled at: {next_run}")
         await asyncio.sleep(interval_hours * 3600)  # Convert hours to seconds
 
-# Run the scraper once
-# asyncio.run(scrape_ycombinator_companies())
-
-# Or run periodically (e.g., every 24 hours)
+# Main execution
 if __name__ == "__main__":
-    import sys
+    import argparse
     
-    if len(sys.argv) > 1 and sys.argv[1] == "--periodic":
-        interval = 24  # Default to 24 hours
-        if len(sys.argv) > 2:
-            try:
-                interval = float(sys.argv[2])
-            except ValueError:
-                print(f"Invalid interval: {sys.argv[2]}. Using default 24 hours.")
-        
-        print(f"Starting periodic scraper with {interval} hour interval")
-        asyncio.run(run_periodic_scraper(interval))
+    parser = argparse.ArgumentParser(description='YCombinator Company Scraper')
+    parser.add_argument('--periodic', action='store_true', help='Run the scraper periodically')
+    parser.add_argument('--interval', type=float, default=24, help='Interval in hours for periodic scraping')
+    parser.add_argument('--proxy-api', type=str, help='API URL to fetch proxy list')
+    parser.add_argument('--no-proxy', action='store_true', help='Disable proxy usage')
+    
+    args = parser.parse_args()
+    
+    if args.periodic:
+        print(f"Starting periodic scraper with {args.interval} hour interval")
+        print(f"Proxy usage: {'Disabled' if args.no_proxy else 'Enabled'}")
+        asyncio.run(run_periodic_scraper(
+            interval_hours=args.interval,
+            proxy_api_url=args.proxy_api,
+            use_proxy=not args.no_proxy
+        ))
     else:
         # Run once
-        asyncio.run(scrape_ycombinator_companies())
+        async def run_once():
+            proxies = await load_proxies(args.proxy_api)
+            return await scrape_ycombinator_companies(
+                proxies=proxies,
+                use_proxy=not args.no_proxy
+            )
+        asyncio.run(run_once())
