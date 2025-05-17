@@ -1,1 +1,1 @@
-from .proxy_manager import get_random_proxy, parse_proxy, get_proxy_info_string, get_random_user_agent
+from .proxy_manager import get_random_proxy, parse_proxy, get_proxy_info_string, get_random_user_agent, fetch_proxies

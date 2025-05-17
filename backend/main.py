@@ -28,29 +28,36 @@ async def run_ycombinator_scraper(args):
     """Run the YCombinator scraper with the specified arguments"""
     logger.info("Starting YCombinator scraper")
     
+    # Get API key from environment if not provided in args
+    api_key = args.api_key or os.getenv("WEBSHARE_API_KEY")
+    
+    # Debug API key (without revealing the full key)
+    if api_key:
+        masked_key = api_key[:4] + '*' * (len(api_key) - 8) + api_key[-4:] if len(api_key) > 8 else '****'
+        logger.info(f"Using API key: {masked_key}")
+    else:
+        logger.error("No API key provided. Set WEBSHARE_API_KEY in .env file or use --api-key")
+        return
+    
     if args.periodic:
         logger.info(f"Running in periodic mode with {args.interval} hour interval")
-        logger.info(f"Proxy usage: {'Disabled' if args.no_proxy else 'Enabled'}")
         await run_periodic_scraper(
             interval_hours=args.interval,
             proxy_api_url=args.proxy_api,
-            use_proxy=not args.no_proxy
+            api_key=api_key
         )
     else:
         logger.info("Running scraper once")
-        proxies = None
-        if not args.no_proxy:
-            logger.info("Loading proxies...")
-            proxies = await load_proxies(args.proxy_api)
-            logger.info(f"Loaded {len(proxies)} proxies")
-        
-        companies = await scrape_ycombinator_companies(
-            proxies=proxies,
-            use_proxy=not args.no_proxy,
-            limit_pages=args.limit
-        )
-        
-        logger.info(f"Scraping completed. Scraped {len(companies)} companies.")
+        try:
+            proxies = await load_proxies(args.proxy_api, api_key)
+            companies = await scrape_ycombinator_companies(
+                proxies=proxies,
+                limit_pages=args.limit
+            )
+            logger.info(f"Scraping completed. Scraped {len(companies)} companies.")
+        except ValueError as e:
+            logger.error(f"Scraping failed: {e}")
+            sys.exit(1)
 
 def main():
     """Main entry point for the backend"""
@@ -62,7 +69,7 @@ def main():
     yc_parser.add_argument('--periodic', action='store_true', help='Run the scraper periodically')
     yc_parser.add_argument('--interval', type=float, default=24, help='Interval in hours for periodic scraping')
     yc_parser.add_argument('--proxy-api', type=str, help='API URL to fetch proxy list')
-    yc_parser.add_argument('--no-proxy', action='store_true', help='Disable proxy usage')
+    yc_parser.add_argument('--api-key', type=str, help='API key for proxy service')
     yc_parser.add_argument('--limit', type=int, help='Limit scraping to N pages (for testing)')
     
     # Add more commands for other backend services here

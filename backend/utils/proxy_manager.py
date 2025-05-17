@@ -1,7 +1,50 @@
 import random
 import requests
 
-                             
+def fetch_proxies(api_url, api_key=None):
+    """
+    Fetch proxies from an API endpoint.
+    
+    Args:
+        api_url: URL to fetch proxies from
+        api_key: Optional API key for authorization
+        
+    Returns:
+        A list of proxy dictionaries
+    """
+    headers = {}
+    if api_key:
+        # Webshare specifically uses this header format
+        headers['Authorization'] = f'Token {api_key}'
+    
+    try:
+        print(f"Fetching proxies from: {api_url}")
+        print(f"Using authorization header: {'Yes' if api_key else 'No'}")
+        
+        response = requests.get(api_url, headers=headers)
+        
+        # Print status code for debugging
+        print(f"API response status code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"API error response: {response.text}")
+            
+        response.raise_for_status()  # Raise exception for 4XX/5XX responses
+        
+        data = response.json()
+        
+        # Extract the proxy results from the JSON response
+        if 'results' in data and isinstance(data['results'], list):
+            return data['results']
+        else:
+            # Print the actual response structure for debugging
+            print(f"Unexpected API response format: {data.keys()}")
+            raise ValueError("Unexpected API response format. Expected 'results' list.")
+    
+    except requests.RequestException as e:
+        print(f"Error fetching proxies: {e}")
+        return []
+
 
 def get_random_proxy(proxies):
     """
