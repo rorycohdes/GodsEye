@@ -19,7 +19,7 @@ far future (podcast feature)
 creates a blog about new trend
 
 
-notifications with a wrap of a product
+notifications with a wrap of a product via email(recommended) or text
 
 
 should have a video clips feature to annotate only a section of a video
