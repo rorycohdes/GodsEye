@@ -2,12 +2,9 @@ import logging
 import time
 from typing import Any, List, Optional, Tuple, Union
 from datetime import datetime
-import sys
-import os
 
 import pandas as pd
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from backend.config.settings import get_settings
 
 from openai import OpenAI
