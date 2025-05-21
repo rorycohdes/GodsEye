@@ -22,6 +22,8 @@ creates a blog about new trend
 notifications with a wrap of a product via email(recommended) or text
 
 
+preview w/ advanced note taking abilities including sync notes with drawing abilities and a browser link for note taking
+
 should have a video clips feature to annotate only a section of a video
 with a preview of the video and a video clip
 
