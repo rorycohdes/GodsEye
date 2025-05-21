@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from backend.config.settings import get_settings
+from config.settings import get_settings
 
 from openai import OpenAI
 from timescale_vector import client
