@@ -1,1 +1,3 @@
-Use the todo.md to explain the past problem you will need to come back to and solve
+set up communication between the FE and the BE
+set up a cron job
+set up alternative scrapping methods like crawl for ai or vision os sraping
