@@ -7,32 +7,9 @@ from timescale_vector.client import uuid_from_time
 
 import os
 from dotenv import load_dotenv
+load_dotenv(dotenv_path="./.env")
 
-# --- Debugging .env loading ---
-print(f"Current Working Directory (CWD): {os.getcwd()}")
-dotenv_target_path = "./.env"
-absolute_dotenv_path = os.path.abspath(dotenv_target_path)
-print(f"Attempting to load .env from: {absolute_dotenv_path}")
-
-if os.path.exists(absolute_dotenv_path):
-    print(f".env file found at: {absolute_dotenv_path}")
-else:
-    print(f"WARNING: .env file NOT found at: {absolute_dotenv_path}")
-
-# Add verbose=True to see detailed output from dotenv
-# Add override=True if you want to ensure .env values replace any existing environment variables
-loaded_successfully = load_dotenv(dotenv_path=dotenv_target_path, verbose=True, override=True)
-if loaded_successfully:
-    print("load_dotenv reported SUCCESS.")
-else:
-    print("load_dotenv reported FAILURE (file might be unreadable, empty, or not found despite os.path.exists).")
-# --- End Debugging .env loading ---
-
-
-# Your existing print statement to check the key
-api_key = os.getenv('OPENAI_API_KEY')
-print(f"open ai api key: '{api_key}' (Type: {type(api_key)})")
-
+print(f"open ai api key {os.getenv('OPENAI_API_KEY')}")
 # Initialize VectorStore
 vec = VectorStore()
 
