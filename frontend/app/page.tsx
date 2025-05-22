@@ -55,17 +55,17 @@ export default function NotebookInterface() {
               <PenBox className="h-4 w-4" />
             </Button>
           </div>
-          <div className="flex gap-2 p-2">
+          <div className="flex gap-2 p-2 box-border w-full">
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 bg-[#2a2a2a] border-gray-700 hover:bg-[#333333]"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#2a2a2a] border-gray-700 hover:bg-[#333333]"
             >
               <Plus className="h-4 w-4" />
               Add
             </Button>
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 bg-[#2a2a2a] border-gray-700 hover:bg-[#333333]"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#2a2a2a] border-gray-700 hover:bg-[#333333]"
             >
               <Search className="h-4 w-4" />
               Discover
