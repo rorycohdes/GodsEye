@@ -1,0 +1,12 @@
+.workspaceContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: #1e1e1e; /* Dark grey background */
+  color: #e0e0e0;
+  position: relative;
+}
+
+.workspaceContent {
+  flex: 1;
+  padding: 20px;
+}
