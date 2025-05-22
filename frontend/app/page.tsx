@@ -1,102 +1,246 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Upload,
+  Search,
+  Plus,
+  Share,
+  Settings,
+  Bot,
+  PenBox,
+  Info,
+  MoreVertical,
+  Send,
+  FileText,
+  MessageSquare,
+  Clock,
+} from "lucide-react";
+
+export default function NotebookInterface() {
+  const [sources, setSources] = useState<string[]>([]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex flex-col h-screen bg-[#1e1e1e] text-white">
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 border-b border-gray-800">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+            <Bot className="w-5 h-5 text-black" />
+          </div>
+          <h1 className="text-lg font-medium">Untitled notebook</h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" className="text-gray-300 gap-2">
+            <Share className="w-4 h-4" />
+            Share
+          </Button>
+          <Button variant="ghost" size="sm" className="text-gray-300">
+            <Settings className="w-4 h-4" />
+            Settings
+          </Button>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500"></div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sources Panel */}
+        <div className="w-[350px] border-r border-gray-800 flex flex-col">
+          <div className="flex items-center justify-between p-4">
+            <h2 className="font-medium">Sources</h2>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <PenBox className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex gap-2 p-2">
+            <Button
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2 bg-[#2a2a2a] border-gray-700 hover:bg-[#333333]"
+            >
+              <Plus className="h-4 w-4" />
+              Add
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2 bg-[#2a2a2a] border-gray-700 hover:bg-[#333333]"
+            >
+              <Search className="h-4 w-4" />
+              Discover
+            </Button>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-16 h-16 mb-4 text-gray-500">
+              <FileText className="w-full h-full" />
+            </div>
+            <p className="text-sm font-medium text-gray-300 mb-1">
+              Saved sources will appear here
+            </p>
+            <p className="text-xs text-gray-500 max-w-[250px]">
+              Click Add source above to add PDFs, websites, text, videos, or
+              audio files. Or import a file directly from Google Drive.
+            </p>
+          </div>
+        </div>
+
+        {/* Chat Panel */}
+        <div className="flex-1 flex flex-col border-r border-gray-800">
+          <div className="flex items-center justify-between p-4">
+            <h2 className="font-medium">Chat</h2>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <PenBox className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center mb-4">
+              <Upload className="w-5 h-5 text-blue-400" />
+            </div>
+            <h3 className="text-xl font-medium mb-4">
+              Add a source to get started
+            </h3>
+            <Button className="bg-[#2a2a2a] hover:bg-[#333333] text-white border border-gray-700 rounded-full">
+              Upload a source
+            </Button>
+          </div>
+          <div className="p-2 border-t border-gray-800">
+            <div className="flex items-center gap-2 bg-[#2a2a2a] rounded-lg p-2 pr-1">
+              <Input
+                placeholder="Upload a source to get started"
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+                disabled
+              />
+              <div className="text-xs text-gray-500">0 sources</div>
+              <Button
+                size="icon"
+                className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700"
+                disabled
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Studio Panel */}
+        <div className="w-[350px] flex flex-col">
+          <div className="flex items-center justify-between p-4">
+            <h2 className="font-medium">Studio</h2>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <PenBox className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-medium">Audio Overview</h3>
+              <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Info className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="bg-[#2a2a2a] rounded-lg p-3 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+                  <Bot className="w-3 h-3 text-white" />
+                </div>
+                <p className="text-xs text-blue-400">
+                  Create an Audio Overview in more languages!{" "}
+                  <span className="underline">Learn more</span>
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 mt-4">
+                <div className="w-12 h-12 rounded-full bg-[#3a3a3a] flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-gray-300" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Deep Dive conversation</p>
+                  <p className="text-xs text-gray-400">Two hosts</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  className="bg-[#2a2a2a] border-gray-700 hover:bg-[#333333] text-sm"
+                >
+                  Customize
+                </Button>
+                <Button className="bg-gray-200 text-black hover:bg-gray-300 text-sm">
+                  Generate
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-medium">Notes</h3>
+              <Button variant="ghost" size="icon" className="h-6 w-6">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full justify-center gap-2 bg-[#2a2a2a] border-gray-700 hover:bg-[#333333] mb-3"
+            >
+              <Plus className="h-4 w-4" />
+              Add note
+            </Button>
+
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <Button
+                variant="ghost"
+                className="justify-start gap-2 text-gray-400 hover:text-white text-xs"
+              >
+                <MessageSquare className="h-3 w-3" />
+                Study guide
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start gap-2 text-gray-400 hover:text-white text-xs"
+              >
+                <FileText className="h-3 w-3" />
+                Briefing doc
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start gap-2 text-gray-400 hover:text-white text-xs"
+              >
+                <MessageSquare className="h-3 w-3" />
+                FAQ
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start gap-2 text-gray-400 hover:text-white text-xs"
+              >
+                <Clock className="h-3 w-3" />
+                Timeline
+              </Button>
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-8">
+              <div className="w-16 h-16 mb-4 text-gray-500">
+                <FileText className="w-full h-full" />
+              </div>
+              <p className="text-sm font-medium text-gray-300 mb-1">
+                Saved notes will appear here
+              </p>
+              <p className="text-xs text-gray-500 max-w-[250px]">
+                Save a chat message to create a new note, or click Add note
+                above.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="p-2 text-center border-t border-gray-800">
+        <p className="text-xs text-gray-500">
+          NotebookLM can be inaccurate; please double check its responses.
+        </p>
       </footer>
     </div>
   );
