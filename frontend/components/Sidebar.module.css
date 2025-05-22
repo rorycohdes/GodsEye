@@ -110,6 +110,63 @@
   text-transform: uppercase;
   color: #72767d;
   font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.addButton {
+  background: transparent;
+  border: none;
+  color: #72767d;
+  font-size: 16px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+
+.addButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.editInput {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #3f4147;
+  border-radius: 3px;
+  color: #e0e0e0;
+  font-size: 14px;
+  padding: 2px 6px;
+  width: 100%;
+  outline: none;
+}
+
+.itemActions {
+  margin-left: auto;
+  display: none;
+}
+
+.navItem:hover .itemActions {
+  display: flex;
+}
+
+.renameButton {
+  background: transparent;
+  border: none;
+  color: #72767d;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+}
+
+.renameButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .favoritesList,

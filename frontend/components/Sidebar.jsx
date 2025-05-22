@@ -9,6 +9,47 @@ export default function Sidebar({
   onNavItemClick,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [favoriteItems, setFavoriteItems] = useState([
+    { id: 1, name: "Untitled", icon: "📄", isEditing: false },
+  ]);
+
+  // Function to add a new untitled item
+  const addNewFavoriteItem = () => {
+    const newId =
+      favoriteItems.length > 0
+        ? Math.max(...favoriteItems.map((item) => item.id)) + 1
+        : 1;
+
+    setFavoriteItems([
+      ...favoriteItems,
+      { id: newId, name: "Untitled", icon: "📄", isEditing: false },
+    ]);
+  };
+
+  // Function to handle renaming items
+  const startEditing = (id) => {
+    setFavoriteItems(
+      favoriteItems.map((item) =>
+        item.id === id ? { ...item, isEditing: true } : item
+      )
+    );
+  };
+
+  const handleNameChange = (id, newName) => {
+    setFavoriteItems(
+      favoriteItems.map((item) =>
+        item.id === id ? { ...item, name: newName } : item
+      )
+    );
+  };
+
+  const finishEditing = (id) => {
+    setFavoriteItems(
+      favoriteItems.map((item) =>
+        item.id === id ? { ...item, isEditing: false } : item
+      )
+    );
+  };
 
   return (
     <div
@@ -50,33 +91,44 @@ export default function Sidebar({
         </div>
       </nav>
 
-      <div className={styles.sectionHeader}>Favorites</div>
-      <div className={styles.favoritesList}>
-        <Link href="/workspace/board" className={styles.navItem}>
-          <span className={styles.navIcon}>📄</span>
-          <span>Drive/why Board</span>
-        </Link>
-        <Link href="/workspace/interview" className={styles.navItem}>
-          <span className={styles.navIcon}>📊</span>
-          <span>Technical Interview Ques</span>
-        </Link>
-        <Link href="/workspace/tasks" className={styles.navItem}>
-          <span className={styles.navIcon}>📊</span>
-          <span>Tasks v2</span>
-        </Link>
-        <Link href="/workspace/habits" className={styles.navItem}>
-          <span className={styles.navIcon}>📊</span>
-          <span>Wall of my Best Habits & Minds...</span>
-        </Link>
-        {/* Add more favorite items as needed */}
+      <div className={styles.sectionHeader}>
+        <span>Favorites</span>
+        <button
+          className={styles.addButton}
+          onClick={addNewFavoriteItem}
+          title="Add new item"
+        >
+          +
+        </button>
       </div>
 
-      <div className={styles.sectionHeader}>Private</div>
-      <div className={styles.privateList}>
-        <Link href="/workspace/youtube" className={styles.navItem}>
-          <span className={styles.navIcon}>📄</span>
-          <span>Youtube Master Page</span>
-        </Link>
+      <div className={styles.favoritesList}>
+        {favoriteItems.map((item) => (
+          <div key={item.id} className={styles.navItem}>
+            <span className={styles.navIcon}>{item.icon}</span>
+            {item.isEditing ? (
+              <input
+                type="text"
+                value={item.name}
+                onChange={(e) => handleNameChange(item.id, e.target.value)}
+                onBlur={() => finishEditing(item.id)}
+                onKeyDown={(e) => e.key === "Enter" && finishEditing(item.id)}
+                className={styles.editInput}
+                autoFocus
+              />
+            ) : (
+              <span onClick={() => startEditing(item.id)}>{item.name}</span>
+            )}
+            <div className={styles.itemActions}>
+              <button
+                className={styles.renameButton}
+                onClick={() => startEditing(item.id)}
+              >
+                ✏️
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className={styles.sidebarFooter}>
