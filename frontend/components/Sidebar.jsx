@@ -7,6 +7,7 @@ export default function Sidebar({
   onMouseLeave,
   onMouseEnter,
   onNavItemClick,
+  onFavoriteItemClick,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [favoriteItems, setFavoriteItems] = useState([
@@ -49,6 +50,12 @@ export default function Sidebar({
         item.id === id ? { ...item, isEditing: false } : item
       )
     );
+  };
+
+  const handleItemClick = (item) => {
+    if (!item.isEditing) {
+      onFavoriteItemClick && onFavoriteItemClick(item.name);
+    }
   };
 
   return (
@@ -104,7 +111,11 @@ export default function Sidebar({
 
       <div className={styles.favoritesList}>
         {favoriteItems.map((item) => (
-          <div key={item.id} className={styles.navItem}>
+          <div
+            key={item.id}
+            className={styles.navItem}
+            onClick={() => handleItemClick(item)}
+          >
             <span className={styles.navIcon}>{item.icon}</span>
             {item.isEditing ? (
               <input
@@ -115,14 +126,25 @@ export default function Sidebar({
                 onKeyDown={(e) => e.key === "Enter" && finishEditing(item.id)}
                 className={styles.editInput}
                 autoFocus
+                onClick={(e) => e.stopPropagation()}
               />
             ) : (
-              <span onClick={() => startEditing(item.id)}>{item.name}</span>
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startEditing(item.id);
+                }}
+              >
+                {item.name}
+              </span>
             )}
             <div className={styles.itemActions}>
               <button
                 className={styles.renameButton}
-                onClick={() => startEditing(item.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startEditing(item.id);
+                }}
               >
                 ✏️
               </button>

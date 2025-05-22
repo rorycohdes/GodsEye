@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import NotebooksView from "../../components/NotebooksView";
+import JobBoardView from "../../components/JobBoardView";
 import styles from "./workspace.module.css";
 
 export default function WorkspacePage() {
@@ -20,6 +21,12 @@ export default function WorkspacePage() {
     setCurrentView(view);
   };
 
+  const handleFavoriteItemClick = (itemName) => {
+    if (itemName === "Untitled") {
+      setCurrentView("jobboard");
+    }
+  };
+
   return (
     <div className={styles.workspaceContainer} onMouseMove={handleMouseMove}>
       <Sidebar
@@ -27,10 +34,13 @@ export default function WorkspacePage() {
         onMouseLeave={() => setSidebarVisible(false)}
         onMouseEnter={() => setSidebarVisible(true)}
         onNavItemClick={handleNavItemClick}
+        onFavoriteItemClick={handleFavoriteItemClick}
       />
       <main className={styles.workspaceContent}>
         {currentView === "notebooks" ? (
           <NotebooksView />
+        ) : currentView === "jobboard" ? (
+          <JobBoardView />
         ) : (
           <div className={styles.homeView}>
             {/* Default home view content */}
