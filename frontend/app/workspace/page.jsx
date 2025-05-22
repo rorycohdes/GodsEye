@@ -4,6 +4,7 @@ import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import NotebooksView from "../../components/NotebooksView";
 import JobBoardView from "../../components/JobBoardView";
+import ForceDirectedGraph from "../../components/ForceDirectedGraph";
 import styles from "./workspace.module.css";
 
 export default function WorkspacePage() {
@@ -24,6 +25,8 @@ export default function WorkspacePage() {
   const handleFavoriteItemClick = (itemName) => {
     if (itemName === "Untitled") {
       setCurrentView("jobboard");
+    } else if (itemName === "Network Graph") {
+      setCurrentView("graph");
     }
   };
 
@@ -41,6 +44,8 @@ export default function WorkspacePage() {
           <NotebooksView />
         ) : currentView === "jobboard" ? (
           <JobBoardView />
+        ) : currentView === "graph" ? (
+          <ForceDirectedGraph />
         ) : (
           <div className={styles.homeView}>
             {/* Default home view content */}

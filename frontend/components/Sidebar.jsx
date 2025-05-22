@@ -12,6 +12,7 @@ export default function Sidebar({
   const [searchQuery, setSearchQuery] = useState("");
   const [favoriteItems, setFavoriteItems] = useState([
     { id: 1, name: "Untitled", icon: "📄", isEditing: false },
+    { id: 2, name: "Network Graph", icon: "🔗", isEditing: false },
   ]);
 
   // Function to add a new untitled item
