@@ -8,8 +8,6 @@
 
 - [ ] potentially use google embeddings
 
-- [ ] send phone notifications
-
 - [ ] update the docker file for security
 
 - [✔️] use the compare feature to compare changes between branches of the repository https://github.com/daveebbelaar/pgvectorscale-rag-solution/tree/setup
@@ -19,3 +17,7 @@
 - [✔️] messed with the settings so that interactive mode uses the correct kernel
 
 - [✔️] I need to not get "No module named" error in interactive mode. The change to the python path such that is the backend folder fixed the issue
+
+- [ ] Customize the RAG system to take your custom data
+
+- [ ] Write functionality to use relation database
