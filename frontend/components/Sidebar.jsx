@@ -2,7 +2,12 @@ import { useState } from "react";
 import Link from "next/link";
 import styles from "./Sidebar.module.css";
 
-export default function Sidebar({ visible, onMouseLeave, onMouseEnter }) {
+export default function Sidebar({
+  visible,
+  onMouseLeave,
+  onMouseEnter,
+  onNavItemClick,
+}) {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
@@ -36,10 +41,13 @@ export default function Sidebar({ visible, onMouseLeave, onMouseEnter }) {
           <span className={styles.navIcon}>🏠</span>
           <span>Home</span>
         </Link>
-        <Link href="/workspace/inbox" className={styles.navItem}>
-          <span className={styles.navIcon}>📥</span>
-          <span>Inbox</span>
-        </Link>
+        <div
+          className={styles.navItem}
+          onClick={() => onNavItemClick("notebooks")}
+        >
+          <span className={styles.navIcon}>📓</span>
+          <span>Notebooks</span>
+        </div>
       </nav>
 
       <div className={styles.sectionHeader}>Favorites</div>
