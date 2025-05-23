@@ -1,3 +1,4 @@
-set up communication between the FE and the BE
-set up a cron job
-set up alternative scrapping methods like crawl for ai or vision os sraping
+- [ ] when a templating or configation component for database when you create a new database
+- [ ] It must have the ability to look at my code and see all the code that returns scraping results
+- [ ] Set up the code return data and meta information for the configuration settings component
+- [ ] I can also have a component that lets you scrape any website and it create a collection view of the data it has recieved
