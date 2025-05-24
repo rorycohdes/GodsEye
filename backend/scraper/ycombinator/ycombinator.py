@@ -91,117 +91,30 @@ async def scrape_ycombinator_companies(proxies, limit_pages=None):
             print('Clicked "Show companies" button')
             
             # Wait for the results to load
-            await page.wait_for_selector('div._section_i9oky_163._results_i9oky_343 a._company_i9oky_355', timeout=30000)
+            await page.wait_for_selector('div._section_i9oky_163._results_i9oky_343', timeout=10000)
             print('Results loaded successfully')
             
-            # Function to scrape the current page of companies
-            async def scrape_current_page():
-                return await page.evaluate('''() => {
-                    const companyElements = document.querySelectorAll('div._section_i9oky_163._results_i9oky_343 a._company_i9oky_355');
-                    const companies = [];
-                    
-                    companyElements.forEach(company => {
-                        // Extract company URL
-                        const url = company.getAttribute('href');
-                        
-                        // Extract company name
-                        const nameElement = company.querySelector('span._coName_i9oky_470');
-                        const name = nameElement ? nameElement.textContent.trim() : '';
-                        
-                        // Extract company location
-                        const locationElement = company.querySelector('span._coLocation_i9oky_486');
-                        const location = locationElement ? locationElement.textContent.trim() : '';
-                        
-                        // Extract company description
-                        const descriptionElement = company.querySelector('span._coDescription_i9oky_495');
-                        const description = descriptionElement ? descriptionElement.textContent.trim() : '';
-                        
-                        // Extract batch information
-                        const batchElement = company.querySelector('._pillWrapper_i9oky_33 a[href^="/companies?batch="] span');
-                        const batch = batchElement ? batchElement.textContent.replace(/^\\S+\\s+/, '') : ''; // Remove YC logo
-                        
-                        // Extract industry tags
-                        const industryElements = company.querySelectorAll('._pillWrapper_i9oky_33 a[href^="/companies?industry="] span');
-                        const industries = Array.from(industryElements).map(el => el.textContent.trim());
-                        
-                        // Extract logo URL
-                        const logoElement = company.querySelector('img');
-                        const logoUrl = logoElement ? logoElement.getAttribute('src') : '';
-                        
-                        // Add the company data to the array
-                        companies.push({
-                            name,
-                            url,
-                            location,
-                            description,
-                            batch,
-                            industries,
-                            logoUrl
-                        });
-                    });
-                    
-                    return companies;
-                }''')
+            # Import and use the company extractor
+            from .company_extractor import extract_all_companies
             
-            # Initial scrape
-            all_companies = []
-            initial_companies = await scrape_current_page()
-            all_companies.extend(initial_companies)
-            print(f"Initially scraped {len(initial_companies)} companies")
+            # Extract all companies with infinite scroll
+            companies = await extract_all_companies(page, limit_pages)
+            print(f'Successfully extracted {len(companies)} companies')
             
-            # Check if there's pagination and handle it
-            has_pagination = await page.locator('nav.pagination').count() > 0
-            
-            if has_pagination:
-                # Get the total number of pages
-                pagination_text = await page.locator('nav.pagination').text_content()
-                import re
-                match = re.search(r'of (\d+)', pagination_text)
-                if match:
-                    total_pages = int(match.group(1))
-                    
-                    # Apply page limit if specified
-                    if limit_pages and limit_pages > 0:
-                        total_pages = min(total_pages, limit_pages)
-                        
-                    print(f"Found pagination with {total_pages} total pages")
-                    
-                    # Loop through all pages
-                    for current_page in range(2, total_pages + 1):
-                        # Click the next page button
-                        await page.locator('button.pagination-next').click()
-                        print(f"Navigated to page {current_page}")
-                        
-                        # Wait for the page to load
-                        await page.wait_for_timeout(2000)  # Adjust timeout as needed
-                        
-                        # Scrape the current page
-                        page_companies = await scrape_current_page()
-                        all_companies.extend(page_companies)
-                        print(f"Scraped {len(page_companies)} companies from page {current_page}")
-                        
-                        # Optional: add a delay between page navigations
-                        await page.wait_for_timeout(1000)
-            
-            # Save the data to a file with timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_dir = Path("ycombinator_data")
-            output_dir.mkdir(exist_ok=True)
-            
-            output_file = output_dir / f"ycombinator_companies_{timestamp}.json"
-            with open(output_file, 'w', encoding='utf-8') as f:
-                json.dump(all_companies, f, indent=2)
-            
-            print(f"Successfully scraped {len(all_companies)} companies in total")
-            print(f"Data saved to {output_file}")
-            
-            return all_companies
+            return companies
             
         except Exception as e:
-            print(f"An error occurred: {e}")
-            raise
+            print(f"Error during scraping: {e}")
+            # Take screenshot for debugging
+            try:
+                await page.screenshot(path="error_screenshot.png")
+                print("Screenshot saved for debugging")
+            except:
+                pass
+            raise e
         finally:
             await browser.close()
+            print('Browser closed')
 
 # Function to load proxies from an API or file
 async def load_proxies(proxy_api_url=None, api_key=None):
