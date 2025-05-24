@@ -21,3 +21,7 @@
 - [ ] Customize the RAG system to take your custom data
 
 - [ ] Write functionality to use relation database
+
+- [ ] Not scrape companies indefinitely. Maybe for the future. I want to scrape like a hundred and all the data of the company and the return the name of all the companies scrape in that batch for debugging purposes. I want to peridoically scrape a 100 companies. So scrape 100 return data, scrape 100 return data so on
+
+- [ ] maybe while scraping the terminal could prompt me to return scrape data while it is actively scraping
