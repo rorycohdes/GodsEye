@@ -20,7 +20,7 @@ creates a blog about new trend (sending notifications via email)
 notifications with a wrap of a product via email(recommended) or text
 preview w/ advanced note taking abilities including sync notes with drawing abilities and a browser link for note taking
 I get alot of inspirations from images so it would be nice to capture a snapshot of UI of different products and possibly do image search
-
+download transcripts from youtube and feed to LLM, 
 
 should have a video clips feature to annotate only a section of a video
 with a preview of the video and a video clip
