@@ -14,6 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from utils.proxy_manager import get_random_proxy, parse_proxy, get_proxy_info_string, get_random_user_agent, fetch_proxies
 
 from dotenv import load_dotenv
+from scraper.ycombinator.company_extractor import extract_all_companies
 import os
 
 # Fix the path to the .env file - use absolute path
@@ -75,27 +76,95 @@ async def scrape_ycombinator_companies(proxies, limit_pages=None):
             await page.goto('https://www.ycombinator.com/companies')
             print('Navigated to YCombinator companies page')
             
-            # Click on "All batches" checkbox if it's not already checked
-            all_batches_checkbox = page.locator('div._facet_i9oky_85 h4:has-text("Batch") ~ label:has-text("All batches") input[type="checkbox"]')
+            # Wait for the page to load completely
+            await page.wait_for_load_state('networkidle')
+            await page.wait_for_timeout(3000)  # Additional wait for dynamic content
             
-            is_checked = await all_batches_checkbox.is_checked()
-            if not is_checked:
-                await all_batches_checkbox.click()
-                print('Clicked "All batches" checkbox')
-            else:
-                print('"All batches" checkbox is already checked')
+            # Ensure "All batches" checkbox is checked
+            print('Ensuring "All batches" checkbox is checked...')
             
-            # Click the "Show X companies" button to load the results
-            show_results_button = page.locator('div._showResults_i9oky_169 button')
-            await show_results_button.click()
-            print('Clicked "Show companies" button')
+            try:
+                # Find the "All batches" checkbox within _facet_i9oky_85
+                all_batches_selectors = [
+                    'div._facet_i9oky_85 label:has-text("All batches") input[type="checkbox"]',
+                    'label:has-text("All batches") input[type="checkbox"]',
+                    'div._facet_i9oky_85 input[type="checkbox"][checked]'
+                ]
+                
+                all_batches_checkbox = None
+                for selector in all_batches_selectors:
+                    try:
+                        checkbox_locator = page.locator(selector).first
+                        if await checkbox_locator.count() > 0:
+                            all_batches_checkbox = checkbox_locator
+                            print(f'Found "All batches" checkbox with selector: {selector}')
+                            break
+                    except Exception as e:
+                        continue
+                
+                if all_batches_checkbox:
+                    is_checked = await all_batches_checkbox.is_checked()
+                    print(f'"All batches" checkbox is checked: {is_checked}')
+                    
+                    if not is_checked:
+                        # Click the label instead of the input for better reliability
+                        label_selector = 'div._facet_i9oky_85 label:has-text("All batches")'
+                        label_element = page.locator(label_selector).first
+                        if await label_element.count() > 0:
+                            await label_element.click()
+                            print('Clicked "All batches" label')
+                            await page.wait_for_timeout(2000)
+                        else:
+                            await all_batches_checkbox.click()
+                            print('Clicked "All batches" checkbox')
+                            await page.wait_for_timeout(2000)
+                    else:
+                        print('"All batches" is already checked')
+                else:
+                    print('Could not find "All batches" checkbox, proceeding anyway...')
+                    
+            except Exception as e:
+                print(f'Error handling checkbox: {e}, proceeding anyway...')
             
-            # Wait for the results to load
-            await page.wait_for_selector('div._section_i9oky_163._results_i9oky_343', timeout=10000)
-            print('Results loaded successfully')
+            # Wait for and access the results section directly
+            print('Looking for results section...')
+            
+            try:
+                # Wait for the results container to be present
+                results_container = page.locator('div._section_i9oky_163._results_i9oky_343')
+                await results_container.wait_for(timeout=15000)
+                print('Results container found')
+                
+                # Wait for company elements to be present
+                company_elements = page.locator('a._company_i9oky_355')
+                await company_elements.first.wait_for(timeout=10000)
+                
+                # Count initial companies
+                initial_count = await company_elements.count()
+                print(f'Found {initial_count} companies in results section')
+                
+                if initial_count == 0:
+                    print('No companies found in results section')
+                    # Take screenshot for debugging
+                    await page.screenshot(path="no_companies_in_results.png")
+                    
+            except Exception as e:
+                print(f'Error accessing results section: {e}')
+                # Try to find results with alternative selectors
+                try:
+                    alt_results = page.locator('[class*="_results_"]')
+                    if await alt_results.count() > 0:
+                        print('Found results with alternative selector')
+                    else:
+                        print('No results section found with any selector')
+                        await page.screenshot(path="no_results_section.png")
+                        raise Exception('Could not find results section')
+                except Exception as alt_error:
+                    raise Exception(f'Could not access results section: {alt_error}')
+            
+            print('Successfully accessed results section')
             
             # Import and use the company extractor
-            from .company_extractor import extract_all_companies
             
             # Extract all companies with infinite scroll
             companies = await extract_all_companies(page, limit_pages)
