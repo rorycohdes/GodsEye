@@ -1,5 +1,7 @@
-set up communication between the FE and the BE
-set up a cron job
-set up alternative scrapping methods like crawl for ai or vision os sraping
-
+- [ ] set up communication between the FE and the BE
+- [ ] set up a cron job
+- [ ] set up alternative scrapping methods like crawl for ai or vision os sraping
 - [ ] more error handling. The beauty with error handling as opposed to logging is you can trace back point of failure of code to a line
+- [ ] work on ai interface so that I can activite converse with ai in a pleasing environment
+- [ ] ability to add sources
+- [ ] supoort for multiple chat sessions
