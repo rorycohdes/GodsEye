@@ -18,13 +18,17 @@ import psycopg
 class VectorStore:
     """A class for managing vector operations and database interactions."""
 
-    def __init__(self):
+    def __init__(self,table_name: Optional[str] = None):
         """Initialize the VectorStore with settings, OpenAI client, and Timescale Vector client."""
         self.settings = get_settings()
         self.openai_client = OpenAI(api_key=self.settings.openai.api_key)
         self.embedding_model = self.settings.openai.embedding_model
         self.cohere_client = cohere.ClientV2(api_key=self.settings.cohere.api_key)
         self.vector_settings = self.settings.vector_store
+
+        # Use provided table_name or fall back to settings
+        self.table_name = table_name or self.vector_settings.table_name
+
         self.vec_client = client.Sync(
             self.settings.database.service_url,
             self.vector_settings.table_name,
@@ -35,7 +39,7 @@ class VectorStore:
 
     def create_keyword_search_index(self):
         """Create a GIN index for keyword search if it doesn't exist."""
-        index_name = f"idx_{self.vector_settings.table_name}_contents_gin"
+        index_name = f"idx_{self.table_name}_contents_gin" # Use dynamic table name
         create_index_sql = f"""
         CREATE INDEX IF NOT EXISTS {index_name}
         ON {self.vector_settings.table_name} USING gin(to_tsvector('english', contents));
