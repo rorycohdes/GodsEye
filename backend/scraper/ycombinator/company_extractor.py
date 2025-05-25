@@ -1,14 +1,146 @@
 import asyncio
 import json
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Set
 from playwright.async_api import Page
 
 class CompanyExtractor:
     """Handles extraction of company data from YCombinator with fallback mechanisms"""
     
-    def __init__(self, page: Page):
+    def __init__(self, page: Page, show_live: bool = False):
         self.page = page
+        self.show_live = show_live
+        self.extracted_urls: Set[str] = set()  # Track extracted companies to avoid duplicates
         
+    async def extract_companies_in_batches(self, max_companies: Optional[int] = None) -> List[Dict]:
+        """Extract companies in batches with scrolling and logging"""
+        all_companies = []
+        batch_number = 1
+        
+        print("🚀 Starting batch extraction with scrolling...")
+        
+        while True:
+            # Extract current batch of visible companies
+            print(f"\n📦 Extracting batch #{batch_number}...")
+            batch_companies = await self._extract_current_batch()
+            
+            if not batch_companies:
+                print(f"No companies found in batch #{batch_number}")
+                break
+            
+            # Filter out duplicates and add to all companies
+            new_companies = []
+            for company in batch_companies:
+                company_url = company.get('url', '')
+                if company_url and company_url not in self.extracted_urls:
+                    self.extracted_urls.add(company_url)
+                    new_companies.append(company)
+                    all_companies.append(company)
+            
+            print(f"✅ Batch #{batch_number}: Found {len(batch_companies)} companies, {len(new_companies)} new")
+            
+            # Log company names from this batch
+            if new_companies:
+                print(f"📋 Companies in batch #{batch_number}:")
+                for i, company in enumerate(new_companies, 1):
+                    name = company.get('name', 'Unknown')
+                    location = company.get('location', 'N/A')
+                    tags = ', '.join(company.get('tags', [])[:2])
+                    print(f"   {i:2d}. {name:<30} | {location:<20} | {tags}")
+            
+            # Check if we've reached the company cap
+            if max_companies and len(all_companies) >= max_companies:
+                print(f"🔢 Reached company cap: {len(all_companies)}/{max_companies}")
+                break
+            
+            # Try to scroll and load more companies
+            print(f"🔄 Scrolling to load more companies...")
+            more_loaded = await self._scroll_and_load_more()
+            
+            if not more_loaded:
+                print("🏁 No more companies to load")
+                break
+            
+            batch_number += 1
+            
+            # Add delay between batches
+            await asyncio.sleep(1)
+        
+        print(f"\n📊 Total extraction complete: {len(all_companies)} companies across {batch_number} batches")
+        return all_companies[:max_companies] if max_companies else all_companies
+    
+    async def _extract_current_batch(self) -> List[Dict]:
+        """Extract companies currently visible on the page"""
+        try:
+            # Wait for results container
+            results_container = self.page.locator('div._section_i9oky_163._results_i9oky_343')
+            await results_container.wait_for(timeout=5000)
+            
+            # Get all company links currently visible
+            company_links = results_container.locator('a._company_i9oky_355')
+            count = await company_links.count()
+            
+            companies = []
+            for i in range(count):
+                try:
+                    company_link = company_links.nth(i)
+                    company_data = await self._extract_single_company_playwright(company_link, i)
+                    if company_data:
+                        companies.append(company_data)
+                except Exception as e:
+                    print(f"Error extracting company {i}: {e}")
+                    continue
+            
+            return companies
+            
+        except Exception as e:
+            print(f"Error in batch extraction: {e}")
+            return []
+    
+    async def _scroll_and_load_more(self) -> bool:
+        """Scroll to load more companies and return True if new content was loaded"""
+        try:
+            # Get current company count before scrolling
+            initial_count = await self.page.locator('a._company_i9oky_355').count()
+            
+            # Scroll to bottom
+            await self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await self.page.wait_for_timeout(2000)
+            
+            # Check for and click load more button if exists
+            load_more_selectors = [
+                'button:has-text("Load more")',
+                'button:has-text("Show more")',
+                '[class*="loadMore"]',
+                '[class*="showMore"]'
+            ]
+            
+            for selector in load_more_selectors:
+                try:
+                    load_more_btn = self.page.locator(selector)
+                    if await load_more_btn.count() > 0:
+                        await load_more_btn.click()
+                        print("Clicked load more button")
+                        await self.page.wait_for_timeout(3000)
+                        break
+                except:
+                    continue
+            
+            # Wait for potential loading
+            await self.page.wait_for_timeout(2000)
+            
+            # Check if new companies were loaded
+            final_count = await self.page.locator('a._company_i9oky_355').count()
+            new_companies_loaded = final_count > initial_count
+            
+            if new_companies_loaded:
+                print(f"📈 Loaded {final_count - initial_count} more companies ({initial_count} → {final_count})")
+            
+            return new_companies_loaded
+            
+        except Exception as e:
+            print(f"Error during scrolling: {e}")
+            return False
+
     async def extract_companies_playwright(self) -> List[Dict]:
         """Extract companies using Playwright locators with error handling"""
         companies = []
@@ -32,6 +164,13 @@ class CompanyExtractor:
                     company_data = await self._extract_single_company_playwright(company_link, i)
                     if company_data:
                         companies.append(company_data)
+                        
+                        # Show live display if enabled
+                        if self.show_live:
+                            name = company_data.get('name', 'Unknown')[:30]
+                            location = company_data.get('location', 'N/A')[:20]
+                            tags = ', '.join(company_data.get('tags', [])[:2])[:30]
+                            print(f"📍 Live: {len(companies):3d}. {name} | {location} | {tags}")
                         
                 except Exception as e:
                     print(f"Error extracting company {i}: {e}")
@@ -159,30 +298,31 @@ class CompanyExtractor:
     async def extract_companies_javascript(self) -> List[Dict]:
         """Extract companies using JavaScript evaluation as fallback"""
         try:
-            js_code = """
-            () => {
+            js_code = f"""
+            () => {{
                 const companies = [];
+                const showLive = {str(self.show_live).lower()};
                 const resultsContainer = document.querySelector('div._section_i9oky_163._results_i9oky_343, [class*="results"], [class*="Results"]');
                 
-                if (!resultsContainer) {
+                if (!resultsContainer) {{
                     console.log('Results container not found');
                     return companies;
-                }
+                }}
                 
                 const companyLinks = resultsContainer.querySelectorAll('a._company_i9oky_355, a[class*="company"], a[href*="/companies/"]');
                 
-                companyLinks.forEach((link, index) => {
-                    try {
-                        const company = {
+                companyLinks.forEach((link, index) => {{
+                    try {{
+                        const company = {{
                             index: index,
                             extraction_method: 'javascript'
-                        };
+                        }};
                         
                         // Extract URL
                         company.url = link.href || link.getAttribute('href');
-                        if (company.url && !company.url.startsWith('http')) {
+                        if (company.url && !company.url.startsWith('http')) {{
                             company.url = 'https://www.ycombinator.com' + company.url;
-                        }
+                        }}
                         
                         // Extract name with fallbacks
                         const nameSelectors = [
@@ -192,13 +332,13 @@ class CompanyExtractor:
                             'span[class*="Name"]'
                         ];
                         
-                        for (const selector of nameSelectors) {
+                        for (const selector of nameSelectors) {{
                             const nameEl = link.querySelector(selector);
-                            if (nameEl && nameEl.textContent.trim()) {
+                            if (nameEl && nameEl.textContent.trim()) {{
                                 company.name = nameEl.textContent.trim();
                                 break;
-                            }
-                        }
+                            }}
+                        }}
                         
                         // Extract location with fallbacks
                         const locationSelectors = [
@@ -208,13 +348,13 @@ class CompanyExtractor:
                             'span[class*="Location"]'
                         ];
                         
-                        for (const selector of locationSelectors) {
+                        for (const selector of locationSelectors) {{
                             const locationEl = link.querySelector(selector);
-                            if (locationEl && locationEl.textContent.trim()) {
+                            if (locationEl && locationEl.textContent.trim()) {{
                                 company.location = locationEl.textContent.trim();
                                 break;
-                            }
-                        }
+                            }}
+                        }}
                         
                         // Extract description with fallbacks
                         const descriptionSelectors = [
@@ -224,44 +364,52 @@ class CompanyExtractor:
                             'span[class*="Description"]'
                         ];
                         
-                        for (const selector of descriptionSelectors) {
+                        for (const selector of descriptionSelectors) {{
                             const descEl = link.querySelector(selector);
-                            if (descEl && descEl.textContent.trim()) {
+                            if (descEl && descEl.textContent.trim()) {{
                                 company.description = descEl.textContent.trim();
                                 break;
-                            }
-                        }
+                            }}
+                        }}
                         
                         // Extract tags
                         const tagsContainer = link.querySelector('div._pillWrapper_i9oky_33, .pill-wrapper, [class*="pillWrapper"]');
                         company.tags = [];
                         
-                        if (tagsContainer) {
+                        if (tagsContainer) {{
                             const tagLinks = tagsContainer.querySelectorAll('a._tagLink_i9oky_1040, .tag-link, [class*="tagLink"]');
-                            tagLinks.forEach(tagLink => {
+                            tagLinks.forEach(tagLink => {{
                                 const tagText = tagLink.textContent.trim();
-                                if (tagText) {
+                                if (tagText) {{
                                     company.tags.push(tagText);
-                                }
-                            });
-                        }
+                                }}
+                            }});
+                        }}
                         
                         // Extract logo
                         const imgEl = link.querySelector('img');
                         company.logo_url = imgEl ? imgEl.src : null;
                         
                         // Only add if we have minimum required data
-                        if (company.name || company.url) {
+                        if (company.name || company.url) {{
                             companies.push(company);
-                        }
+                            
+                            // Show live display if enabled (every 5th company to avoid spam)
+                            if (showLive && companies.length % 5 === 0) {{
+                                const name = (company.name || 'Unknown').substring(0, 30);
+                                const location = (company.location || 'N/A').substring(0, 20);
+                                const tagText = company.tags.slice(0, 2).join(', ').substring(0, 30);
+                                console.log(`📍 Live JS: ${{companies.length.toString().padStart(3, ' ')}}. ${{name}} | ${{location}} | ${{tagText}}`);
+                            }}
+                        }}
                         
-                    } catch (error) {
+                    }} catch (error) {{
                         console.log('Error extracting company', index, error);
-                    }
-                });
+                    }}
+                }});
                 
                 return companies;
-            }
+            }}
             """
             
             companies = await self.page.evaluate(js_code)
@@ -353,30 +501,16 @@ async def scroll_and_load_more(page: Page, limit_pages: Optional[int] = None) ->
         print(f"Error during scrolling: {e}")
         return False
 
-async def extract_all_companies(page: Page, limit_pages: Optional[int] = None) -> List[Dict]:
-    """Main function to extract all companies with both approaches"""
-    extractor = CompanyExtractor(page)
+async def extract_all_companies(page: Page, max_companies: Optional[int] = None, show_live: bool = False) -> List[Dict]:
+    """Main function to extract all companies using batch method"""
+    extractor = CompanyExtractor(page, show_live)
     
-    # First, scroll to load all companies
-    print("Starting infinite scroll to load all companies...")
-    await scroll_and_load_more(page, limit_pages)
-    
-    # Try Playwright approach first
-    print("Attempting extraction with Playwright locators...")
-    companies = await extractor.extract_companies_playwright()
-    
-    # If Playwright approach fails or returns insufficient data, try JavaScript
-    if len(companies) < 10:  # Arbitrary threshold
-        print("Playwright extraction insufficient, trying JavaScript fallback...")
-        js_companies = await extractor.extract_companies_javascript()
-        
-        if len(js_companies) > len(companies):
-            print("JavaScript extraction returned more companies, using those")
-            companies = js_companies
+    # Use the new batch extraction method
+    companies = await extractor.extract_companies_in_batches(max_companies)
     
     # Clean and validate data
     cleaned_companies = []
-    for company in companies:
+    for i, company in enumerate(companies):
         if company.get('name') or company.get('url'):
             # Ensure required fields exist
             company.setdefault('name', 'Unknown')
@@ -387,5 +521,10 @@ async def extract_all_companies(page: Page, limit_pages: Optional[int] = None) -
             company.setdefault('url', None)
             
             cleaned_companies.append(company)
+            
+            # Apply company cap if specified
+            if max_companies and len(cleaned_companies) >= max_companies:
+                break
     
+    print(f"\n🎯 Final result: {len(cleaned_companies)} companies ready for processing")
     return cleaned_companies
