@@ -31,7 +31,7 @@ class VectorStore:
 
         self.vec_client = client.Sync(
             self.settings.database.service_url,
-            self.vector_settings.table_name,
+            self.table_name,
             self.vector_settings.embedding_dimensions,
             time_partition_interval=self.vector_settings.time_partition_interval,
         )
@@ -42,7 +42,7 @@ class VectorStore:
         index_name = f"idx_{self.table_name}_contents_gin" # Use dynamic table name
         create_index_sql = f"""
         CREATE INDEX IF NOT EXISTS {index_name}
-        ON {self.vector_settings.table_name} USING gin(to_tsvector('english', contents));
+        ON {self.table_name} USING gin(to_tsvector('english', contents));
         """
         try:
             with psycopg.connect(self.settings.database.service_url) as conn:
