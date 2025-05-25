@@ -20,3 +20,5 @@ source venv/bin/activate
 ```
 
 document.querySelector to get element of specific class very str8 forward
+
+vector operations and tradional data queries, one database
