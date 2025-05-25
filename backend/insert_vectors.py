@@ -12,7 +12,7 @@ load_dotenv(dotenv_path="./.env")
 
 print(f"open ai api key {os.getenv('OPENAI_API_KEY')}")
 # Initialize VectorStore
-vec = VectorStore()
+vec = VectorStore(table_name="sample_companies")  # Pass table name during initialization
 
 # Load the company dataset
 def load_company_dataset(file_path="data/sample_companies.json"):
@@ -64,7 +64,7 @@ def prepare_company_record(row):
 records_df = df.apply(prepare_company_record, axis=1)
 
 # Create tables and insert data
-vec.create_tables()
+vec.create_tables()  # Create tables if they don't exist
 vec.create_index()  # DiskAnnIndex
 vec.create_keyword_search_index()  # GIN Index
 vec.upsert(records_df)
