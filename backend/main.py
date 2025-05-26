@@ -6,6 +6,9 @@ import sys
 import os
 from datetime import datetime
 from pathlib import Path
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from routers import sql_routes, vector_routes
 
 # Configure logging
 logging.basicConfig(
@@ -23,6 +26,33 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import scraper modules
 from scraper.ycombinator.ycombinator import scrape_ycombinator_companies, load_proxies, run_periodic_scraper
+
+app = FastAPI(
+    title="GodsEye API",
+    description="API for company data queries and vector search",
+    version="1.0.0"
+)
+
+# Configure CORS for frontend communication
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure this for your frontend URL in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(sql_routes.router, prefix="/api/sql", tags=["SQL Queries"])
+app.include_router(vector_routes.router, prefix="/api/vector", tags=["Vector Search"])
+
+@app.get("/")
+async def root():
+    return {"message": "GodsEye API is running"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
 
 async def run_ycombinator_scraper(args):
     """Run the YCombinator scraper with the specified arguments"""
@@ -98,4 +128,4 @@ if __name__ == "__main__":
         logger.info("Backend stopped by user")
     except Exception as e:
         logger.exception(f"Unhandled exception: {e}")
-        sys.exit(1) 
+        sys.exit(1)
