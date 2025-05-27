@@ -29,3 +29,5 @@
 - [✔️] create a new table or index wtv and then seed the table with data that you would get from ycomb and
 
 - [ ] set up queries to return that data to the front end
+
+- [ ] install requirement.txt file for the newly added packages
