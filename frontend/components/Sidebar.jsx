@@ -87,8 +87,8 @@ export default function Sidebar({
 
       <nav className={styles.navigation}>
         <Link href="/workspace" className={styles.navItem}>
-          <span className={styles.navIcon}>🏠</span>
-          <span>Home</span>
+          <span className={styles.navIcon}>📰</span>
+          <span>Feed</span>
         </Link>
         <div
           className={styles.navItem}
@@ -96,6 +96,38 @@ export default function Sidebar({
         >
           <span className={styles.navIcon}>📓</span>
           <span>Notebooks</span>
+        </div>
+        <div
+          className={styles.navItem}
+          onClick={() => onNavItemClick("clipped")}
+        >
+          <span className={styles.navIcon}>📎</span>
+          <span>Clipped</span>
+        </div>
+        <div className={styles.navItem} onClick={() => onNavItemClick("saved")}>
+          <span className={styles.navIcon}>💾</span>
+          <span>Saved</span>
+        </div>
+        <div
+          className={styles.navItem}
+          onClick={() => onNavItemClick("connections")}
+        >
+          <span className={styles.navIcon}>🔗</span>
+          <span>Connections</span>
+        </div>
+        <div
+          className={styles.navItem}
+          onClick={() => onNavItemClick("scraped")}
+        >
+          <span className={styles.navIcon}>🕷️</span>
+          <span>Scraped</span>
+        </div>
+        <div
+          className={styles.navItem}
+          onClick={() => onNavItemClick("knowledge-base")}
+        >
+          <span className={styles.navIcon}>🧠</span>
+          <span>Knowledge Base</span>
         </div>
       </nav>
 
