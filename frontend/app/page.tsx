@@ -18,10 +18,23 @@ import {
   MessageSquare,
   Clock,
 } from "lucide-react";
+import {
+  FileUploadModal,
+  type UploadedFile,
+} from "@/components/file-upload-modal";
+import { SourceItem } from "@/components/source-item";
 
 export default function NotebookInterface() {
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [sources, setSources] = useState<string[]>([]);
 
+  const handleFileUpload = (file: UploadedFile) => {
+    setSources((prev) => [...prev, file]);
+  };
+
+  const handleDeleteSource = (id: string) => {
+    setSources((prev) => prev.filter((source) => source.id !== id));
+  };
   return (
     <div className="flex flex-col h-screen bg-[#1e1e1e] text-white">
       {/* Header */}
@@ -59,6 +72,7 @@ export default function NotebookInterface() {
             <Button
               variant="outline"
               className="flex-1 flex items-center justify-center gap-2 bg-[#2a2a2a] border-gray-700 hover:bg-[#333333]"
+              onClick={() => setUploadModalOpen(true)}
             >
               <Plus className="h-4 w-4" />
               Add
@@ -71,18 +85,30 @@ export default function NotebookInterface() {
               Discover
             </Button>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 mb-4 text-gray-500">
-              <FileText className="w-full h-full" />
+          {sources.length > 0 ? (
+            <div className="flex-1 overflow-y-auto p-2">
+              {sources.map((source) => (
+                <SourceItem
+                  key={source.id}
+                  file={source}
+                  onDelete={handleDeleteSource}
+                />
+              ))}
             </div>
-            <p className="text-sm font-medium text-gray-300 mb-1">
-              Saved sources will appear here
-            </p>
-            <p className="text-xs text-gray-500 max-w-[250px]">
-              Click Add source above to add PDFs, websites, text, videos, or
-              audio files. Or import a file directly from Google Drive.
-            </p>
-          </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-16 h-16 mb-4 text-gray-500">
+                <FileText className="w-full h-full" />
+              </div>
+              <p className="text-sm font-medium text-gray-300 mb-1">
+                Saved sources will appear here
+              </p>
+              <p className="text-xs text-gray-500 max-w-[250px]">
+                Click Add source above to add PDFs, websites, text, videos, or
+                audio files. Or import a file directly from Google Drive.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Chat Panel */}
@@ -94,28 +120,53 @@ export default function NotebookInterface() {
             </Button>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center mb-4">
-              <Upload className="w-5 h-5 text-blue-400" />
-            </div>
-            <h3 className="text-xl font-medium mb-4">
-              Add a source to get started
-            </h3>
-            <Button className="bg-[#2a2a2a] hover:bg-[#333333] text-white border border-gray-700 rounded-full">
-              Upload a source
-            </Button>
+            {sources.length > 0 ? (
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center mb-4 mx-auto">
+                  <Bot className="w-5 h-5 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-medium mb-2">Ready to chat</h3>
+                <p className="text-sm text-gray-400 max-w-md">
+                  You've added {sources.length} source
+                  {sources.length !== 1 ? "s" : ""}. Ask questions about your
+                  content or start a conversation.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center mb-4">
+                  <Upload className="w-5 h-5 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-medium mb-4">
+                  Add a source to get started
+                </h3>
+                <Button
+                  className="bg-[#2a2a2a] hover:bg-[#333333] text-white border border-gray-700 rounded-full"
+                  onClick={() => setUploadModalOpen(true)}
+                >
+                  Upload a source
+                </Button>
+              </>
+            )}
           </div>
           <div className="p-2 border-t border-gray-800">
             <div className="flex items-center gap-2 bg-[#2a2a2a] rounded-lg p-2 pr-1">
               <Input
-                placeholder="Upload a source to get started"
+                placeholder={
+                  sources.length > 0
+                    ? "Ask a question..."
+                    : "Upload a source to get started"
+                }
                 className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
-                disabled
+                disabled={sources.length === 0}
               />
-              <div className="text-xs text-gray-500">0 sources</div>
+              <div className="text-xs text-gray-500">
+                {sources.length} sources
+              </div>
               <Button
                 size="icon"
                 className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700"
-                disabled
+                disabled={sources.length === 0}
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -168,7 +219,10 @@ export default function NotebookInterface() {
                 >
                   Customize
                 </Button>
-                <Button className="bg-gray-200 text-black hover:bg-gray-300 text-sm">
+                <Button
+                  className="bg-gray-200 text-black hover:bg-gray-300 text-sm"
+                  disabled={sources.length === 0}
+                >
                   Generate
                 </Button>
               </div>
@@ -242,6 +296,12 @@ export default function NotebookInterface() {
           NotebookLM can be inaccurate; please double check its responses.
         </p>
       </footer>
+      {/* File Upload Modal */}
+      <FileUploadModal
+        open={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        onFileUpload={handleFileUpload}
+      />
     </div>
   );
 }
