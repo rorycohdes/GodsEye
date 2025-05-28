@@ -27,6 +27,8 @@ import { SourceItem } from "@/components/source-item";
 export default function NotebookInterface() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [sources, setSources] = useState<UploadedFile[]>([]);
+  const [notebookTitle, setNotebookTitle] = useState("Untitled notebook");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   const handleFileUpload = (file: UploadedFile) => {
     setSources((prev) => [...prev, file]);
@@ -35,6 +37,24 @@ export default function NotebookInterface() {
   const handleDeleteSource = (id: string) => {
     setSources((prev) => prev.filter((source) => source.id !== id));
   };
+
+  const handleTitleEdit = () => {
+    setIsEditingTitle(true);
+  };
+
+  const handleTitleSave = (newTitle: string) => {
+    setNotebookTitle(newTitle.trim() || "Untitled notebook");
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleTitleSave(e.currentTarget.value);
+    } else if (e.key === "Escape") {
+      setIsEditingTitle(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#1e1e1e] text-white">
       {/* Header */}
@@ -43,7 +63,25 @@ export default function NotebookInterface() {
           <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
             <Bot className="w-5 h-5 text-black" />
           </div>
-          <h1 className="text-lg font-medium">Untitled notebook</h1>
+          <h1 className="text-lg font-medium">
+            {isEditingTitle ? (
+              <Input
+                value={notebookTitle}
+                onChange={(e) => setNotebookTitle(e.target.value)}
+                onKeyDown={handleTitleKeyDown}
+                onBlur={() => handleTitleSave(notebookTitle)}
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-lg font-medium p-0 h-auto"
+                autoFocus
+              />
+            ) : (
+              <span
+                onClick={handleTitleEdit}
+                className="cursor-pointer hover:text-gray-300"
+              >
+                {notebookTitle}
+              </span>
+            )}
+          </h1>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" className="text-gray-300 gap-2">
