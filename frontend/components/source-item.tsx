@@ -62,7 +62,7 @@ export function SourceItem({ file, onDelete }: SourceItemProps) {
 
   return (
     <div
-      className="relative group rounded-lg border border-border bg-card p-4 hover:bg-muted"
+      className="relative group rounded-lg border border-gray-700 bg-[#2a2a2a] p-4 hover:bg-[#333333]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
