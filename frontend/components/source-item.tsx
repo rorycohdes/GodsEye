@@ -11,36 +11,53 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { FilePreview } from "./file-preview";
+import type { UploadedFile } from "@/components/file-upload-modal";
 
 interface SourceItemProps {
-  file: {
-    id: string;
-    name: string;
-    size: number;
-    type: string;
-    uploadedAt: Date;
-    url: string;
-  };
+  file: UploadedFile;
+  onDelete?: (id: string) => void;
 }
 
-export function SourceItem({ file }: SourceItemProps) {
+export function SourceItem({ file, onDelete }: SourceItemProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const getFileIcon = () => {
-    if (file.type.includes("image")) {
-      return <span className="text-2xl">🖼️</span>;
+    switch (file.type) {
+      case "image":
+        return <span className="text-2xl">🖼️</span>;
+      case "video":
+        return <span className="text-2xl">🎬</span>;
+      case "audio":
+        return <span className="text-2xl">🎵</span>;
+      case "pdf":
+        return <span className="text-2xl">📄</span>;
+      case "text":
+        return <span className="text-2xl">📝</span>;
+      case "website":
+        return <span className="text-2xl">🌐</span>;
+      default:
+        return <span className="text-2xl">📄</span>;
     }
+  };
 
-    if (file.type.includes("video")) {
-      return <span className="text-2xl">🎬</span>;
+  const handleDownload = () => {
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement("a");
+    link.href = file.url;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setDropdownOpen(false);
+  };
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(file.id);
     }
-
-    if (file.type.includes("audio")) {
-      return <span className="text-2xl">🎵</span>;
-    }
-
-    return <span className="text-2xl">📄</span>;
+    setDropdownOpen(false);
   };
 
   return (
@@ -68,14 +85,18 @@ export function SourceItem({ file }: SourceItemProps) {
         </div>
       </div>
 
-      {isHovered && (
-        <DropdownMenu>
+      {(isHovered || dropdownOpen) && (
+        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger className="absolute top-2 right-2 rounded-full p-1.5 hover:bg-secondary">
             <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" forceMount>
-            <DropdownMenuItem>Download</DropdownMenuItem>
-            <DropdownMenuItem>Delete</DropdownMenuItem>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleDownload}>
+              Download
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete} variant="destructive">
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )}

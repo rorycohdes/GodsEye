@@ -26,7 +26,7 @@ import { SourceItem } from "@/components/source-item";
 
 export default function NotebookInterface() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [sources, setSources] = useState<string[]>([]);
+  const [sources, setSources] = useState<UploadedFile[]>([]);
 
   const handleFileUpload = (file: UploadedFile) => {
     setSources((prev) => [...prev, file]);
@@ -127,7 +127,7 @@ export default function NotebookInterface() {
                 </div>
                 <h3 className="text-xl font-medium mb-2">Ready to chat</h3>
                 <p className="text-sm text-gray-400 max-w-md">
-                  You've added {sources.length} source
+                  You&apos;ve added {sources.length} source
                   {sources.length !== 1 ? "s" : ""}. Ask questions about your
                   content or start a conversation.
                 </p>
