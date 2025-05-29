@@ -9,3 +9,4 @@ set up alternative scrapping methods like crawl for ai or vision os sraping
 - [ ] title rename should reflect in collection
 - [ ] have skeleton cards for cards that don't exist
 - [ ] find design for webscraping cards and notebook cards
+- [ ] color coded accents for origin of scraped cards
