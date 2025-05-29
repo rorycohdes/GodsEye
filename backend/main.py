@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import sql_routes, vector_routes
+from routers import sql_routes, vector_routes, realtime_routes
 
 # Configure logging
 logging.basicConfig(
@@ -45,6 +45,7 @@ app.add_middleware(
 # Include routers
 app.include_router(sql_routes.router, prefix="/api/sql", tags=["SQL Queries"])
 app.include_router(vector_routes.router, prefix="/api/vector", tags=["Vector Search"])
+app.include_router(realtime_routes.router, prefix="/api/realtime", tags=["Real-time Data"])
 
 @app.get("/")
 async def root():

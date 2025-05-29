@@ -384,3 +384,62 @@ class VectorStore:
         )
 
         return reranked_df.sort_values("relevance_score", ascending=False)
+
+    def get_latest_rows(self, limit: int = 1) -> pd.DataFrame:
+        """
+        Get the most recently added rows from the database.
+        
+        Args:
+            limit: Number of latest rows to return (default: 1 for just the latest)
+        
+        Returns:
+            A pandas DataFrame containing the latest rows
+        """
+        sql = f"""
+            SELECT id, metadata, contents, metadata->>'created_at' as created_at
+            FROM {self.table_name}
+            ORDER BY id DESC
+            LIMIT %s
+        """
+        
+        with psycopg.connect(self.settings.database.service_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, (limit,))
+                results = cur.fetchall()
+        
+        df = pd.DataFrame(results, columns=['id', 'metadata', 'contents', 'created_at'])
+        df['id'] = df['id'].astype(str)
+        
+        return df
+
+    def get_latest_with_details(self, limit: int = 1) -> pd.DataFrame:
+        """
+        Get the latest rows with expanded metadata details.
+        
+        Args:
+            limit: Number of latest rows to return (default: 1)
+        
+        Returns:
+            A pandas DataFrame with expanded metadata columns
+        """
+        sql = f"""
+            SELECT 
+                id,
+                contents,
+                metadata->>'company_name' as company_name,
+                metadata->>'location' as location,
+                metadata->>'url' as url,
+                metadata->>'created_at' as created_at
+            FROM {self.table_name}
+            ORDER BY id DESC
+            LIMIT %s
+        """
+        
+        with psycopg.connect(self.settings.database.service_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, (limit,))
+                results = cur.fetchall()
+        
+        return pd.DataFrame(results, columns=[
+            'id', 'contents', 'company_name', 'location', 'url', 'created_at'
+        ])
