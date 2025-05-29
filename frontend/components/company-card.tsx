@@ -105,7 +105,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
         )}
 
         {/* Footer with views navigation */}
-        <div className="pt-4 border-t border-border/50">
+        <div className="pt-4 border-t border-border/50 mt-4">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground font-medium">
               views

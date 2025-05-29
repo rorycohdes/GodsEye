@@ -131,10 +131,15 @@ const companies = [
 ];
 
 export default function MasonryPage() {
-  // Generate skeleton cards for loading placeholders
-  const skeletonCards = Array.from({ length: 6 }, (_, i) => ({
-    id: `skeleton-${i}`,
-  }));
+  // Generate skeleton cards with different variants for varied heights
+  const skeletonCards = [
+    { id: "skeleton-0", variant: "medium" as const },
+    { id: "skeleton-1", variant: "large" as const },
+    { id: "skeleton-2", variant: "small" as const },
+    { id: "skeleton-3", variant: "medium" as const },
+    { id: "skeleton-4", variant: "large" as const },
+    { id: "skeleton-5", variant: "small" as const },
+  ];
 
   return (
     <div className="dark min-h-screen bg-background">
@@ -161,7 +166,7 @@ export default function MasonryPage() {
           {/* Skeleton Cards */}
           {skeletonCards.map((skeleton) => (
             <div key={skeleton.id} className="break-inside-avoid mb-6">
-              <CompanySkeletonCard />
+              <CompanySkeletonCard variant={skeleton.variant} />
             </div>
           ))}
         </div>
