@@ -115,13 +115,10 @@ export default function Sidebar({
           <span className={styles.navIcon}>🔗</span>
           <span>Connections</span>
         </div>
-        <div
-          className={styles.navItem}
-          onClick={() => onNavItemClick("scraped")}
-        >
+        <Link href="/masonry" className={styles.navItem}>
           <span className={styles.navIcon}>🕷️</span>
           <span>Scraped</span>
-        </div>
+        </Link>
         <div
           className={styles.navItem}
           onClick={() => onNavItemClick("knowledge-base")}

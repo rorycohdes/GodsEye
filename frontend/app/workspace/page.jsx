@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Sidebar from "../../components/Sidebar";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import NotebooksView from "../../components/NotebooksView";
 import JobBoardView from "../../components/JobBoardView";
 import ForceDirectedGraph from "../../components/ForceDirectedGraph";
@@ -13,27 +13,15 @@ import KnowledgeBaseView from "../../components/KnowledgeBaseView";
 import styles from "./workspace.module.css";
 
 export default function WorkspacePage() {
-  const [sidebarVisible, setSidebarVisible] = useState(false);
   const [currentView, setCurrentView] = useState("feed");
+  const searchParams = useSearchParams();
 
-  const handleMouseMove = (e) => {
-    // Show sidebar when mouse is near the left edge (within 20px)
-    if (e.clientX <= 20) {
-      setSidebarVisible(true);
+  useEffect(() => {
+    const view = searchParams.get("view");
+    if (view) {
+      setCurrentView(view);
     }
-  };
-
-  const handleNavItemClick = (view) => {
-    setCurrentView(view);
-  };
-
-  const handleFavoriteItemClick = (itemName) => {
-    if (itemName === "Untitled") {
-      setCurrentView("jobboard");
-    } else if (itemName === "Network Graph") {
-      setCurrentView("graph");
-    }
-  };
+  }, [searchParams]);
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -67,14 +55,7 @@ export default function WorkspacePage() {
   };
 
   return (
-    <div className={styles.workspaceContainer} onMouseMove={handleMouseMove}>
-      <Sidebar
-        visible={sidebarVisible}
-        onMouseLeave={() => setSidebarVisible(false)}
-        onMouseEnter={() => setSidebarVisible(true)}
-        onNavItemClick={handleNavItemClick}
-        onFavoriteItemClick={handleFavoriteItemClick}
-      />
+    <div className={styles.workspaceContainer}>
       <main className={styles.workspaceContent}>{renderCurrentView()}</main>
     </div>
   );
