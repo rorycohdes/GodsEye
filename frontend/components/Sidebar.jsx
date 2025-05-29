@@ -6,7 +6,6 @@ export default function Sidebar({
   visible,
   onMouseLeave,
   onMouseEnter,
-  onNavItemClick,
   onFavoriteItemClick,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,42 +89,30 @@ export default function Sidebar({
           <span className={styles.navIcon}>📰</span>
           <span>Feed</span>
         </Link>
-        <div
-          className={styles.navItem}
-          onClick={() => onNavItemClick("notebooks")}
-        >
+        <Link href="/notebooks" className={styles.navItem}>
           <span className={styles.navIcon}>📓</span>
           <span>Notebooks</span>
-        </div>
-        <div
-          className={styles.navItem}
-          onClick={() => onNavItemClick("clipped")}
-        >
+        </Link>
+        <Link href="/clipped" className={styles.navItem}>
           <span className={styles.navIcon}>📎</span>
           <span>Clipped</span>
-        </div>
-        <div className={styles.navItem} onClick={() => onNavItemClick("saved")}>
+        </Link>
+        <Link href="/saved" className={styles.navItem}>
           <span className={styles.navIcon}>💾</span>
           <span>Saved</span>
-        </div>
-        <div
-          className={styles.navItem}
-          onClick={() => onNavItemClick("connections")}
-        >
+        </Link>
+        <Link href="/connections" className={styles.navItem}>
           <span className={styles.navIcon}>🔗</span>
           <span>Connections</span>
-        </div>
+        </Link>
         <Link href="/masonry" className={styles.navItem}>
           <span className={styles.navIcon}>🕷️</span>
           <span>Scraped</span>
         </Link>
-        <div
-          className={styles.navItem}
-          onClick={() => onNavItemClick("knowledge-base")}
-        >
+        <Link href="/knowledge-base" className={styles.navItem}>
           <span className={styles.navIcon}>🧠</span>
           <span>Knowledge Base</span>
-        </div>
+        </Link>
       </nav>
 
       <div className={styles.sectionHeader}>

@@ -24,11 +24,6 @@ export default function RootLayout({
     }
   };
 
-  const handleNavItemClick = (view: string) => {
-    // Route to workspace with the specific view as a query parameter
-    router.push(`/workspace?view=${view}`);
-  };
-
   const handleFavoriteItemClick = (itemName: string) => {
     if (itemName === "Untitled") {
       router.push("/workspace?view=jobboard");
@@ -59,7 +54,6 @@ export default function RootLayout({
             visible={sidebarVisible}
             onMouseLeave={() => setSidebarVisible(false)}
             onMouseEnter={() => setSidebarVisible(true)}
-            onNavItemClick={handleNavItemClick}
             onFavoriteItemClick={handleFavoriteItemClick}
           />
           <main
