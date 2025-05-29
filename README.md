@@ -45,3 +45,5 @@ This means your endpoints will be:
 /api/sql/companies
 /api/vector/search
 etc.
+
+Makes sql queries in realtime to keep the frontend updated with the latest changes using SSE in our api
