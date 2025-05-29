@@ -17,17 +17,6 @@ interface CompanyCardProps {
 }
 
 export function CompanyCard({ company }: CompanyCardProps) {
-  // Calculate height more precisely based on content
-  const baseSpan = 3; // Header + pitch
-  const featureSpan = company.features.length; // One span per feature roughly
-  const footerSpan = 1; // Footer space
-  const totalSpan = Math.max(
-    baseSpan + Math.ceil(featureSpan * 0.6) + footerSpan,
-    4
-  ); // Minimum 4 spans
-
-  const heightClass = `row-span-${totalSpan}`;
-
   const [currentView, setCurrentView] = useState(0);
   const totalViews = 2; // Only two views now
 
@@ -44,9 +33,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
   };
 
   return (
-    <Card
-      className={`${heightClass} bg-card/80 border-border/50 hover:bg-card/90 transition-colors duration-200 flex flex-col`}
-    >
+    <Card className="bg-card/80 border-border/50 hover:bg-card/90 transition-colors duration-200">
       <CardContent className="p-6 flex flex-col">
         {/* Header with logo and company name - always visible */}
         <div className="flex items-center gap-3 mb-4">

@@ -7,24 +7,9 @@ interface CompanySkeletonCardProps {
   featureCount?: number;
 }
 
-export function CompanySkeletonCard({
-  featureCount = 4,
-}: CompanySkeletonCardProps) {
-  // Calculate height based on number of features (same logic as real card)
-  const baseSpan = 3;
-  const featureSpan = featureCount;
-  const footerSpan = 1;
-  const totalSpan = Math.max(
-    baseSpan + Math.ceil(featureSpan * 0.6) + footerSpan,
-    4
-  );
-
-  const heightClass = `row-span-${totalSpan}`;
-
+export function CompanySkeletonCard({}: CompanySkeletonCardProps) {
   return (
-    <Card
-      className={`${heightClass} bg-card/80 border-border/50 flex flex-col`}
-    >
+    <Card className="bg-card/80 border-border/50">
       <CardContent className="p-6 flex flex-col">
         {/* Header skeleton */}
         <div className="flex items-center gap-3 mb-4">

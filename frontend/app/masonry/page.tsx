@@ -131,15 +131,10 @@ const companies = [
 ];
 
 export default function MasonryPage() {
-  // Generate skeleton cards with predefined feature counts to avoid hydration issues
-  const skeletonCards = [
-    { id: "skeleton-0", featureCount: 4 },
-    { id: "skeleton-1", featureCount: 6 },
-    { id: "skeleton-2", featureCount: 3 },
-    { id: "skeleton-3", featureCount: 5 },
-    { id: "skeleton-4", featureCount: 4 },
-    { id: "skeleton-5", featureCount: 7 },
-  ];
+  // Generate skeleton cards for loading placeholders
+  const skeletonCards = Array.from({ length: 6 }, (_, i) => ({
+    id: `skeleton-${i}`,
+  }));
 
   return (
     <div className="dark min-h-screen bg-background">
@@ -155,18 +150,19 @@ export default function MasonryPage() {
         </div>
 
         {/* Masonry Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-[80px]">
+        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-0">
           {/* Company Cards */}
           {companies.map((company) => (
-            <CompanyCard key={company.id} company={company} />
+            <div key={company.id} className="break-inside-avoid mb-6">
+              <CompanyCard company={company} />
+            </div>
           ))}
 
           {/* Skeleton Cards */}
           {skeletonCards.map((skeleton) => (
-            <CompanySkeletonCard
-              key={skeleton.id}
-              featureCount={skeleton.featureCount}
-            />
+            <div key={skeleton.id} className="break-inside-avoid mb-6">
+              <CompanySkeletonCard />
+            </div>
           ))}
         </div>
 
