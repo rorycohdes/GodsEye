@@ -55,3 +55,5 @@ curl and query params such as limit
 ex. curl -s "http://127.0.0.1:8000/api/realtime/latest?limit=3" | python3 -m json.tool
 
 no need to cluster file with logs and print statements
+
+when you get "These conflicts are too complex to resolve in the web editor." just merge from the command line
