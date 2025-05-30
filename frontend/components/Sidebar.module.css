@@ -1,0 +1,202 @@
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #2f3136;
+  color: #e0e0e0;
+  position: fixed;
+  left: -250px;
+  top: 0;
+  transition: left 0.3s ease;
+  overflow-y: auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar.visible {
+  left: 0;
+}
+
+.sidebarHeader {
+  padding: 12px 14px;
+  border-bottom: 1px solid #3f4147;
+}
+
+.workspaceInfo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.workspaceIcon {
+  width: 24px;
+  height: 24px;
+  background-color: #ff9d00;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+.workspaceName {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.dropdownIcon {
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.searchContainer {
+  display: flex;
+  align-items: center;
+  background-color: #202225;
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.searchIcon {
+  margin-right: 6px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  color: #e0e0e0;
+  width: 100%;
+  font-size: 14px;
+  outline: none;
+}
+
+.navigation {
+  padding: 8px 0;
+  border-bottom: 1px solid #3f4147;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  padding: 6px 14px;
+  color: #b9bbbe;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.navItem:hover {
+  background-color: #393c43;
+}
+
+.navIcon {
+  margin-right: 8px;
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.sectionHeader {
+  padding: 14px 14px 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #72767d;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.addButton {
+  background: transparent;
+  border: none;
+  color: #72767d;
+  font-size: 16px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+
+.addButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.editInput {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #3f4147;
+  border-radius: 3px;
+  color: #e0e0e0;
+  font-size: 14px;
+  padding: 2px 6px;
+  width: 100%;
+  outline: none;
+}
+
+.itemActions {
+  margin-left: auto;
+  display: none;
+}
+
+.navItem:hover .itemActions {
+  display: flex;
+}
+
+.renameButton {
+  background: transparent;
+  border: none;
+  color: #72767d;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+}
+
+.renameButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.favoritesList,
+.privateList {
+  margin-bottom: 10px;
+}
+
+.sidebarFooter {
+  margin-top: auto;
+  padding: 14px;
+  border-top: 1px solid #3f4147;
+}
+
+.inviteButton {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: #b9bbbe;
+  padding: 6px 0;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.inviteButton:hover {
+  color: #ffffff;
+}
+
+.inviteIcon {
+  margin-right: 8px;
+}

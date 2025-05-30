@@ -1,0 +1,312 @@
+.connectionsContainer {
+  width: 100%;
+  padding: 40px;
+  color: #e0e0e0;
+  background-color: #1e1e1e;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #b9bbbe;
+}
+
+.actionsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.searchContainer {
+  display: flex;
+  align-items: center;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 10px 15px;
+  flex: 1;
+  max-width: 300px;
+  min-width: 200px;
+}
+
+.searchIcon {
+  margin-right: 10px;
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  color: #e0e0e0;
+  width: 100%;
+  font-size: 14px;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: #72767d;
+}
+
+.filterButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.filterButton {
+  background-color: #2a2a2a;
+  border: 1px solid #3f4147;
+  color: #b9bbbe;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterButton:hover {
+  background-color: #393c43;
+  color: #ffffff;
+}
+
+.filterButton.active {
+  background-color: #5865f2;
+  border-color: #5865f2;
+  color: #ffffff;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  background-color: #5865f2;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.addButton:hover {
+  background-color: #4752c4;
+}
+
+.plusIcon {
+  margin-right: 6px;
+  font-weight: bold;
+}
+
+.connectionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.connectionCard {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #3f4147;
+  transition: all 0.2s;
+}
+
+.connectionCard:hover {
+  background-color: #333333;
+  border-color: #5a5d63;
+  transform: translateY(-2px);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.avatarContainer {
+  position: relative;
+  margin-right: 16px;
+}
+
+.avatar {
+  font-size: 3rem;
+  display: block;
+}
+
+.statusIndicator {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #2a2a2a;
+}
+
+.statusIndicator.online {
+  background-color: #57f287;
+}
+
+.statusIndicator.away {
+  background-color: #faa61a;
+}
+
+.statusIndicator.offline {
+  background-color: #747f8d;
+}
+
+.connectionInfo {
+  flex: 1;
+}
+
+.name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+}
+
+.connectionInfo .title {
+  font-size: 14px;
+  color: #b9bbbe;
+  margin: 0 0 2px 0;
+  font-weight: 500;
+}
+
+.company {
+  font-size: 13px;
+  color: #72767d;
+  margin: 0;
+}
+
+.connectionMeta {
+  margin-bottom: 16px;
+}
+
+.metaItem {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.metaLabel {
+  font-size: 12px;
+  color: #72767d;
+}
+
+.metaValue {
+  font-size: 12px;
+  color: #b9bbbe;
+  font-weight: 500;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.tag {
+  background-color: #5865f2;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #3f4147;
+}
+
+.actionButton {
+  background: transparent;
+  border: 1px solid #3f4147;
+  color: #b9bbbe;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.actionButton:hover {
+  background-color: #393c43;
+  color: #ffffff;
+  border-color: #5a5d63;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.emptyState h3 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+
+.emptyState p {
+  color: #72767d;
+  font-size: 1rem;
+}
+
+.networkStats {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.statCard {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid #3f4147;
+  min-width: 120px;
+}
+
+.statNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #5865f2;
+  margin-bottom: 8px;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #72767d;
+  text-transform: uppercase;
+  font-weight: 500;
+}
