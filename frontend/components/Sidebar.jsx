@@ -105,7 +105,7 @@ export default function Sidebar({
           <span className={styles.navIcon}>🔗</span>
           <span>Connections</span>
         </Link>
-        <Link href="/masonry" className={styles.navItem}>
+        <Link href="/scrapes" className={styles.navItem}>
           <span className={styles.navIcon}>🕷️</span>
           <span>Scraped</span>
         </Link>
