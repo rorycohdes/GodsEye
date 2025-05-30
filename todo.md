@@ -64,8 +64,10 @@
 
 - [ ] I know I have the company name on the backend so for now I can populate cards with company name
 
-- [ ] Let the cards have their own page when you click the parent element of the card
+- [✔️] Let the cards have their own page when you click the parent element of the card
 
 - [ ] Use lorem Ipsum to populate the other fields of the card
 
 - [ ] communicate with local deepseek and make the system prompts for each field of the cards
+
+- [ ] a column that stores newly ai created field values
