@@ -61,7 +61,7 @@ async def stream_latest_data():
                     # Only send if we have new data
                     if current_id != last_id:
                         latest_data = {
-                            "id": latest_df.iloc[0]["id"],
+                            "id": str(latest_df.iloc[0]["id"]),
                             "company_name": latest_df.iloc[0]["company_name"],
                             "location": latest_df.iloc[0]["location"],
                             "url": latest_df.iloc[0]["url"],
