@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Link from "next/link";
 import styles from "./NotebooksView.module.css";
 
 export default function NotebooksView() {
@@ -104,17 +105,28 @@ export default function NotebooksView() {
         }`}
       >
         {notebooks.map((notebook) => (
-          <div key={notebook.id} className={styles.notebookCard}>
-            <div className={styles.notebookIcon}>{notebook.icon}</div>
-            <div className={styles.notebookInfo}>
-              <h3 className={styles.notebookTitle}>{notebook.title}</h3>
-              <p className={styles.notebookMeta}>
-                {notebook.date} • {notebook.sources}{" "}
-                {notebook.sources === 1 ? "source" : "sources"}
-              </p>
+          <Link
+            key={notebook.id}
+            href={`/notebooks/${notebook.id}`}
+            className={styles.notebookLink}
+          >
+            <div className={styles.notebookCard}>
+              <div className={styles.notebookIcon}>{notebook.icon}</div>
+              <div className={styles.notebookInfo}>
+                <h3 className={styles.notebookTitle}>{notebook.title}</h3>
+                <p className={styles.notebookMeta}>
+                  {notebook.date} • {notebook.sources}{" "}
+                  {notebook.sources === 1 ? "source" : "sources"}
+                </p>
+              </div>
+              <button
+                className={styles.moreButton}
+                onClick={(e) => e.preventDefault()}
+              >
+                ⋮
+              </button>
             </div>
-            <button className={styles.moreButton}>⋮</button>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
