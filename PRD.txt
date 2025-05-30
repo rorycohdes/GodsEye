@@ -25,4 +25,9 @@ download transcripts from youtube and feed to LLM,
 should have a video clips feature to annotate only a section of a video
 with a preview of the video and a video clip
 
+
+
+** UI/UX **
+A sidebar like tweet hunter that resurfaces content based on your interests, it could automatically scroll and you hover over the content your interested and it stops so you can scrutinize it.
+
 Technicalities

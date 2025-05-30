@@ -5,3 +5,11 @@
 - [ ] work on ai interface so that I can activite converse with ai in a pleasing environment
 - [ ] ability to add sources
 - [ ] supoort for multiple chat sessions
+- [✔️] improve the page for the scraped data
+- [✔️] notebook lm page shouldn't be defualt url
+- [✔️] notebooklm page should go back to the collection of all other notebooks
+- [✔️] title rename should reflect in collection
+- [✔️] have skeleton cards for cards that don't exist
+- [✔️] find design for webscraping cards and notebook cards
+- [ ] color coded accents for origin (twitter blue accend in the bottom right corner) of scraped cards
+- [ ] get rid of the modules.css and just use tailwind
