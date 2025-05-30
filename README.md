@@ -47,3 +47,9 @@ This means your endpoints will be:
 etc.
 
 Makes sql queries in realtime to keep the frontend updated with the latest changes using SSE in our api
+SSE route just for sending data to the webscraping page
+
+Intermediate ways to test files or quick ways [tools] to poke and prod your api/ server such as:
+curl and json.tool
+curl and query params such as limit
+ex. curl -s "http://127.0.0.1:8000/api/realtime/latest?limit=3" | python3 -m json.tool
