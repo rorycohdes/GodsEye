@@ -26,9 +26,9 @@ export default function RootLayout({
 
   const handleFavoriteItemClick = (itemName: string) => {
     if (itemName === "Untitled") {
-      router.push("/workspace?view=jobboard");
+      router.push("/?view=jobboard");
     } else if (itemName === "Network Graph") {
-      router.push("/workspace?view=graph");
+      router.push("/?view=graph");
     }
   };
 

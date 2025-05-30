@@ -85,7 +85,7 @@ export default function Sidebar({
       </div>
 
       <nav className={styles.navigation}>
-        <Link href="/workspace" className={styles.navItem}>
+        <Link href="/" className={styles.navItem}>
           <span className={styles.navIcon}>📰</span>
           <span>Feed</span>
         </Link>
