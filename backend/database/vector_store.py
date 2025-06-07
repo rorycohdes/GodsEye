@@ -5,6 +5,7 @@ from typing import Any, List, Optional, Tuple, Union
 from datetime import datetime
 
 import pandas as pd
+from pydantic import ValidationError
 
 from config.settings import get_settings
 
@@ -25,13 +26,9 @@ class VectorStore:
         self.openai_client = OpenAI(api_key=self.settings.openai.api_key)
         self.embedding_model = self.settings.openai.embedding_model
         self.cohere_client = cohere.ClientV2(api_key=self.settings.cohere.api_key)
-        
+        self.company_synthesis = self.settings.company_synthesis
         # Initialize DeepSeek client
-        self.deepseek_client = OpenAI(
-            api_key=self.settings.deepseek.api_key,
-            base_url=self.settings.deepseek.base_url
-        )
-        
+        self.deepseek_client = Groq(api_key=self.settings.deepseek.api_key)
         self.vector_settings = self.settings.vector_store
 
         # Use provided table_name or fall back to settings
@@ -500,25 +497,26 @@ class VectorStore:
             dict: Dictionary containing 'pitch' and 'feature_summary' fields
         """
         try:
-            prompt = f"""
-            Based on the following company information, generate:
-            1. A compelling 2-sentence pitch for the company
-            2. A brief feature summary (3-4 key features/capabilities)
-
+            system_prompt = f"""
+            You are a product catalog assistant. Analyze the following company information and generate insights.
+            
             Company Information: {content}
-
-            Please respond in JSON format:
+            
+            Respond with a valid JSON object that matches this exact structure:
             {{
-                "pitch": "Your 2-sentence pitch here",
-                "feature_summary": "Key features and capabilities summary here"
+                "pitch": "A compelling 2-sentence company pitch",
+                "feature_summary": ["feature1", "feature2", "feature3"]
             }}
+            
+            Your response should ONLY contain the JSON object and nothing else.
             """
             
             logging.info(f"Generating AI insights using DeepSeek on Groq Cloud for content: {content[:100]}...")
             
             response = self.deepseek_client.chat.completions.create(
                 model=self.settings.deepseek.default_model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=[{"role": "user", "content": system_prompt}],
+                response_format={"type": "json_object"},
                 temperature=self.settings.deepseek.temperature,
                 max_tokens=self.settings.deepseek.max_tokens
             )
@@ -529,32 +527,40 @@ class VectorStore:
             response_text = response.choices[0].message.content.strip()
             logging.info(f"Raw response from DeepSeek: {response_text}")
             
-            # Remove markdown code blocks if present
-            if response_text.startswith('```json'):
-                response_text = response_text[7:-3]
-                logging.info("Removed JSON markdown formatting")
-            elif response_text.startswith('```'):
-                response_text = response_text[3:-3]
-                logging.info("Removed generic markdown formatting")
-                
-            logging.info(f"Cleaned response text: {response_text}")
-            
+            # Parse JSON from API response
             result = json.loads(response_text)
+            logging.info(f"Parsed JSON result: {result}")
+
+            # Validate using Pydantic schema
+            #If the validation fails (missing fields, wrong data types, etc.), Pydantic raises a ValidationError, which is caught by the except ValidationError block in the code.
+            company_synthesis = self.company_synthesis(**result)
+            logging.info(f"Pydantic validation successful")
+
+            # Return as dictionary for consistency with existing code
             final_result = {
-                "pitch": result.get("pitch", ""),
-                "feature_summary": result.get("feature_summary", "")
+                "pitch": company_synthesis.pitch,
+                "feature_summary": company_synthesis.feature_summary
             }
             
-            logging.info(f"Successfully parsed AI insights: {final_result}")
+            logging.info(f"Successfully generated AI insights: {final_result}")
             return final_result
             
         except json.JSONDecodeError as e:
             logging.error(f"JSON parsing error with DeepSeek response: {str(e)}")
             logging.error(f"Failed to parse response: {response_text if 'response_text' in locals() else 'No response received'}")
             return {
-                "pitch": "JSON parsing failed",
-                "feature_summary": "JSON parsing failed"
+                "pitch": "JSON parsing failed - invalid response format",
+                "feature_summary": ["JSON parsing failed"]
             }
+            
+        except ValidationError as e:
+            logging.error(f"Pydantic validation error with DeepSeek response: {str(e)}")
+            logging.error(f"Response did not match CompanySynthesis schema: {result if 'result' in locals() else 'No parsed result'}")
+            return {
+                "pitch": "Schema validation failed - response structure invalid",
+                "feature_summary": ["Schema validation failed"]
+            }
+            
         except Exception as e:
             logging.error(f"Error generating AI insights with DeepSeek on Groq Cloud: {str(e)}")
             logging.error(f"Error type: {type(e).__name__}")
@@ -562,5 +568,5 @@ class VectorStore:
                 logging.error(f"API Error response: {e.response.text}")
             return {
                 "pitch": f"AI generation failed: {str(e)}",
-                "feature_summary": f"AI generation failed: {str(e)}"
+                "feature_summary": [f"AI generation failed: {str(e)}"]
             }

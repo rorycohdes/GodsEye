@@ -53,6 +53,13 @@ class CohereSettings(BaseModel):
     api_key: str = Field(default_factory=lambda: os.getenv("COHERE_API_KEY"))
 
 
+class CompanySynthesis(BaseModel):
+    """Schema for DeepSeek AI insights output."""
+    
+    pitch: str = Field(description="Company pitch as a string")
+    feature_summary: list[str] = Field(description="Feature summary as an array of strings")
+
+
 class DeepSeekSettings(LLMSettings):
     """DeepSeek-specific settings extending LLMSettings."""
 
@@ -69,6 +76,7 @@ class Settings(BaseModel):
     openai: OpenAISettings = Field(default_factory=OpenAISettings)
     cohere: CohereSettings = Field(default_factory=CohereSettings)
     deepseek: DeepSeekSettings = Field(default_factory=DeepSeekSettings)
+    company_synthesis: CompanySynthesis = Field(default_factory=CompanySynthesis)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     vector_store: VectorStoreSettings = Field(default_factory=VectorStoreSettings)
 
