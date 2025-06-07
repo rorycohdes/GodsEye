@@ -21,62 +21,6 @@ def load_company_dataset(file_path="data/sample_companies.json"):
         data = json.load(f)
     return pd.DataFrame(data['companies'])
 
-def generate_pitch_and_features(content: str) -> dict:
-    """
-    Generate pitch and feature summary based on company content using AI.
-    
-    Args:
-        content (str): The company content to analyze
-        
-    Returns:
-        dict: Dictionary containing 'pitch' and 'feature_summary' fields
-        
-    Note:
-        Currently using OpenAI. TODO: Replace with DeepSeek on Grok integration
-    """
-    try:
-        prompt = f"""
-        Based on the following company information, generate:
-        1. A compelling 2-sentence pitch for the company
-        2. A brief feature summary (3-4 key features/capabilities)
-
-        Company Information: {content}
-
-        Please respond in JSON format:
-        {{
-            "pitch": "Your 2-sentence pitch here",
-            "feature_summary": "Key features and capabilities summary here"
-        }}
-        """
-        
-        response = vec.openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=300
-        )
-        
-        # Parse the JSON response
-        response_text = response.choices[0].message.content.strip()
-        # Remove markdown code blocks if present
-        if response_text.startswith('```json'):
-            response_text = response_text[7:-3]
-        elif response_text.startswith('```'):
-            response_text = response_text[3:-3]
-            
-        result = json.loads(response_text)
-        return {
-            "pitch": result.get("pitch", ""),
-            "feature_summary": result.get("feature_summary", "")
-        }
-        
-    except Exception as e:
-        print(f"Error generating pitch and features: {str(e)}")
-        return {
-            "pitch": "AI-generated pitch unavailable",
-            "feature_summary": "AI-generated feature summary unavailable"
-        }
-
 # Load the dataset
 df = load_company_dataset()
 print(f"Loaded {len(df)} companies from dataset")
@@ -94,14 +38,15 @@ def prepare_company_record(row):
         This function creates embeddings from the company's description and metadata.
         It uses the current time for the UUID. To use a specific time,
         create a datetime object and use uuid_from_time(your_datetime).
+        AI insights are generated using DeepSeek via Grok.
     """
     # Create content for embedding from company description and key info
     content = f"Company: {row['name']}. Location: {row['location']}. Description: {row['description']}. Tags: {', '.join(row['tags'])}"
     
     embedding = vec.get_embedding(content)
     
-    # Generate AI-powered pitch and feature summary
-    ai_insights = generate_pitch_and_features(content)
+    # Generate AI-powered pitch and feature summary using DeepSeek
+    ai_insights = vec.generate_ai_insights(content)
     
     return pd.Series(
         {
@@ -114,7 +59,7 @@ def prepare_company_record(row):
                 "logo_url": row['logo_url'],
                 "extraction_method": row['extraction_method'],
                 "created_at": datetime.now().isoformat(),
-                "ai_insights": ai_insights  # New field containing pitch and feature_summary
+                "ai_insights": ai_insights  # Generated using DeepSeek on Grok
             },
             "contents": content,
             "embedding": embedding,

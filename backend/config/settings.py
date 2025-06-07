@@ -52,16 +52,25 @@ class CohereSettings(BaseModel):
 
     api_key: str = Field(default_factory=lambda: os.getenv("COHERE_API_KEY"))
 
-    
+
+class DeepSeekSettings(LLMSettings):
+    """DeepSeek-specific settings extending LLMSettings."""
+
+    api_key: str = Field(default_factory=lambda: os.getenv("GROQ_CLOUD_API_KEY"))
+    base_url: str = Field(default="https://api.groq.com/openai/v1")
+    default_model: str = Field(default="deepseek-r1-distill-llama-70b")
+    temperature: float = 0.3
+    max_tokens: int = 500
+
+
 class Settings(BaseModel):
     """Main settings class combining all sub-settings."""
 
     openai: OpenAISettings = Field(default_factory=OpenAISettings)
     cohere: CohereSettings = Field(default_factory=CohereSettings)
+    deepseek: DeepSeekSettings = Field(default_factory=DeepSeekSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     vector_store: VectorStoreSettings = Field(default_factory=VectorStoreSettings)
-
-
 
 
 @lru_cache()

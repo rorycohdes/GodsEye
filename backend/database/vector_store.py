@@ -1,5 +1,6 @@
 import logging
 import time
+import json
 from typing import Any, List, Optional, Tuple, Union
 from datetime import datetime
 
@@ -24,6 +25,13 @@ class VectorStore:
         self.openai_client = OpenAI(api_key=self.settings.openai.api_key)
         self.embedding_model = self.settings.openai.embedding_model
         self.cohere_client = cohere.ClientV2(api_key=self.settings.cohere.api_key)
+        
+        # Initialize DeepSeek client
+        self.deepseek_client = OpenAI(
+            api_key=self.settings.deepseek.api_key,
+            base_url=self.settings.deepseek.base_url
+        )
+        
         self.vector_settings = self.settings.vector_store
 
         # Use provided table_name or fall back to settings
@@ -480,3 +488,79 @@ class VectorStore:
         return pd.DataFrame(results, columns=[
             'id', 'company_name', 'location', 'url', 'pitch', 'feature_summary', 'created_at'
         ])
+
+    def generate_ai_insights(self, content: str) -> dict:
+        """
+        Generate pitch and feature summary using DeepSeek on Groq Cloud.
+        
+        Args:
+            content (str): The company content to analyze
+            
+        Returns:
+            dict: Dictionary containing 'pitch' and 'feature_summary' fields
+        """
+        try:
+            prompt = f"""
+            Based on the following company information, generate:
+            1. A compelling 2-sentence pitch for the company
+            2. A brief feature summary (3-4 key features/capabilities)
+
+            Company Information: {content}
+
+            Please respond in JSON format:
+            {{
+                "pitch": "Your 2-sentence pitch here",
+                "feature_summary": "Key features and capabilities summary here"
+            }}
+            """
+            
+            logging.info(f"Generating AI insights using DeepSeek on Groq Cloud for content: {content[:100]}...")
+            
+            response = self.deepseek_client.chat.completions.create(
+                model=self.settings.deepseek.default_model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=self.settings.deepseek.temperature,
+                max_tokens=self.settings.deepseek.max_tokens
+            )
+            
+            logging.info(f"DeepSeek API response received successfully")
+            
+            # Parse the JSON response
+            response_text = response.choices[0].message.content.strip()
+            logging.info(f"Raw response from DeepSeek: {response_text}")
+            
+            # Remove markdown code blocks if present
+            if response_text.startswith('```json'):
+                response_text = response_text[7:-3]
+                logging.info("Removed JSON markdown formatting")
+            elif response_text.startswith('```'):
+                response_text = response_text[3:-3]
+                logging.info("Removed generic markdown formatting")
+                
+            logging.info(f"Cleaned response text: {response_text}")
+            
+            result = json.loads(response_text)
+            final_result = {
+                "pitch": result.get("pitch", ""),
+                "feature_summary": result.get("feature_summary", "")
+            }
+            
+            logging.info(f"Successfully parsed AI insights: {final_result}")
+            return final_result
+            
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON parsing error with DeepSeek response: {str(e)}")
+            logging.error(f"Failed to parse response: {response_text if 'response_text' in locals() else 'No response received'}")
+            return {
+                "pitch": "JSON parsing failed",
+                "feature_summary": "JSON parsing failed"
+            }
+        except Exception as e:
+            logging.error(f"Error generating AI insights with DeepSeek on Groq Cloud: {str(e)}")
+            logging.error(f"Error type: {type(e).__name__}")
+            if hasattr(e, 'response') and hasattr(e.response, 'text'):
+                logging.error(f"API Error response: {e.response.text}")
+            return {
+                "pitch": f"AI generation failed: {str(e)}",
+                "feature_summary": f"AI generation failed: {str(e)}"
+            }
