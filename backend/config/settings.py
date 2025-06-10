@@ -56,8 +56,8 @@ class CohereSettings(BaseModel):
 class CompanySynthesis(BaseModel):
     """Schema for DeepSeek AI insights output."""
     
-    pitch: str = Field(description="Company pitch as a string")
-    feature_summary: list[str] = Field(description="Feature summary as an array of strings")
+    pitch: str = Field(default="", description="Company pitch as a string")
+    feature_summary: list[str] = Field(default_factory=list, description="Feature summary as an array of strings")
 
 
 class DeepSeekSettings(LLMSettings):

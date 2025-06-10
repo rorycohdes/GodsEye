@@ -7,7 +7,7 @@ from datetime import datetime
 import pandas as pd
 from pydantic import ValidationError
 
-from config.settings import get_settings
+from config.settings import get_settings, CompanySynthesis
 
 from openai import OpenAI
 from timescale_vector import client
@@ -28,7 +28,10 @@ class VectorStore:
         self.cohere_client = cohere.ClientV2(api_key=self.settings.cohere.api_key)
         self.company_synthesis = self.settings.company_synthesis
         # Initialize DeepSeek client
-        self.deepseek_client = Groq(api_key=self.settings.deepseek.api_key)
+        self.deepseek_client = OpenAI(
+            api_key=self.settings.deepseek.api_key,
+            base_url=self.settings.deepseek.base_url
+        )
         self.vector_settings = self.settings.vector_store
 
         # Use provided table_name or fall back to settings
@@ -533,7 +536,7 @@ class VectorStore:
 
             # Validate using Pydantic schema
             #If the validation fails (missing fields, wrong data types, etc.), Pydantic raises a ValidationError, which is caught by the except ValidationError block in the code.
-            company_synthesis = self.company_synthesis(**result)
+            company_synthesis = CompanySynthesis(**result)
             logging.info(f"Pydantic validation successful")
 
             # Return as dictionary for consistency with existing code
