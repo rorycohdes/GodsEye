@@ -8,10 +8,24 @@ from pathlib import Path
 from playwright.async_api import async_playwright
 import sys
 import os
+import pandas as pd
+from typing import List, Dict, Optional
 
 # Add the parent directory to sys.path to import from backend.utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from utils.proxy_manager import get_random_proxy, parse_proxy, get_proxy_info_string, get_random_user_agent, fetch_proxies
+
+# Import VectorStore and schemas
+from database.vector_store import VectorStore
+from timescale_vector.client import uuid_from_time
+from config.settings import (
+    get_settings, 
+    ScrapedCompanyData, 
+    DatabaseCompanyRecord, 
+    CompanyMetadata, 
+    ScraperMetadata,
+    CompanySynthesis
+)
 
 from dotenv import load_dotenv
 from scraper.ycombinator.company_extractor import extract_all_companies
@@ -34,7 +48,208 @@ if webshare_api_key is None:
     print(f"Retrying with default .env path, webshare_api_key: {webshare_api_key}")
 
 
-async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=False):
+def validate_scraped_company(company_data: dict) -> Optional[ScrapedCompanyData]:
+    """
+    Validate and clean scraped company data using Pydantic schema.
+    
+    Args:
+        company_data: Raw company data dictionary from scraper
+        
+    Returns:
+        Validated ScrapedCompanyData instance or None if validation fails
+    """
+    try:
+        # Convert to Pydantic model for validation
+        validated_company = ScrapedCompanyData(**company_data)
+        
+        # Additional business logic validation
+        if not validated_company.name and not validated_company.url:
+            print(f"⚠️  Skipping company with no name or URL: {company_data}")
+            return None
+            
+        return validated_company
+        
+    except Exception as e:
+        print(f"❌ Invalid company data: {e}")
+        print(f"   Raw data: {company_data}")
+        return None
+
+
+def prepare_scraped_company_for_db(scraped_company: ScrapedCompanyData, vec_store: VectorStore, settings) -> DatabaseCompanyRecord:
+    """
+    Prepare validated scraped company data for insertion into the vector store.
+    
+    Args:
+        scraped_company: Validated ScrapedCompanyData instance
+        vec_store: VectorStore instance for generating embeddings and AI insights
+        settings: Application settings
+    
+    Returns:
+        DatabaseCompanyRecord instance ready for database insertion
+    """
+    # Build content using template from settings
+    content_parts = []
+    
+    if scraped_company.name:
+        content_parts.append(f"Company: {scraped_company.name}")
+    
+    if scraped_company.location:
+        content_parts.append(f"Location: {scraped_company.location}")
+        
+    if scraped_company.description:
+        content_parts.append(f"Description: {scraped_company.description}")
+        
+    if scraped_company.tags:
+        content_parts.append(f"Tags: {', '.join(scraped_company.tags)}")
+    
+    content = '. '.join(content_parts)
+    
+    # Generate embedding if enabled
+    embedding = []
+    if settings.scraper.enable_embeddings:
+        print(f"🔄 Generating embedding for: {scraped_company.name or 'Unknown'}")
+        embedding = vec_store.get_embedding(content)
+    
+    # Generate AI insights if enabled
+    ai_insights = CompanySynthesis()
+    if settings.scraper.enable_ai_insights:
+        print(f"🤖 Generating AI insights for: {scraped_company.name or 'Unknown'}")
+        ai_insights_dict = vec_store.generate_ai_insights(content)
+        ai_insights = CompanySynthesis(**ai_insights_dict)
+    
+    # Create scraper metadata
+    scraper_metadata = ScraperMetadata(
+        index=scraped_company.index,
+        scraped_at=datetime.now().isoformat(),
+        scraper_version="2.0"  # Updated version with schema validation
+    )
+    
+    # Create company metadata
+    company_metadata = CompanyMetadata(
+        company_name=scraped_company.name or "Unknown",
+        location=scraped_company.location or "",
+        tags=scraped_company.tags,
+        url=scraped_company.url or "",
+        logo_url=scraped_company.logo_url,
+        extraction_method=scraped_company.extraction_method or "ycombinator_scraper",
+        created_at=datetime.now().isoformat(),
+        ai_insights=ai_insights,
+        scraper_metadata=scraper_metadata
+    )
+    
+    # Create complete database record
+    db_record = DatabaseCompanyRecord(
+        id=str(uuid_from_time(datetime.now())),
+        metadata=company_metadata,
+        contents=content,
+        embedding=embedding
+    )
+    
+    return db_record
+
+
+async def insert_companies_to_database(companies: List[dict], table_name: str = None) -> None:
+    """
+    Insert scraped companies into the vector database with schema validation.
+    
+    Args:
+        companies: List of raw company dictionaries from scraper
+        table_name: Database table name to insert into
+    """
+    if not companies:
+        print("⚠️  No companies to insert into database")
+        return
+    
+    settings = get_settings()
+    table_name = table_name or settings.scraper.default_table_name
+    
+    print(f"\n💾 Preparing to insert {len(companies)} companies into database...")
+    print(f"🗄️  Target table: {table_name}")
+    
+    # Initialize VectorStore with specific table name
+    vec_store = VectorStore(table_name=table_name)
+    
+    try:
+        # Create tables if they don't exist
+        print("🔧 Creating database tables and indexes...")
+        vec_store.create_tables()
+        vec_store.create_index()  # DiskAnnIndex for vector search
+        vec_store.create_keyword_search_index()  # GIN index for keyword search
+        
+        # Validate and prepare company records for database insertion
+        print("🔄 Validating and processing companies for database insertion...")
+        db_records = []
+        validation_errors = 0
+        
+        for i, raw_company in enumerate(companies, 1):
+            try:
+                # Validate scraped data
+                validated_company = validate_scraped_company(raw_company)
+                if not validated_company:
+                    validation_errors += 1
+                    continue
+                
+                print(f"Processing company {i}/{len(companies)}: {validated_company.name or 'Unknown'}")
+                
+                # Prepare for database insertion
+                db_record = prepare_scraped_company_for_db(validated_company, vec_store, settings)
+                
+                # Convert to dictionary for DataFrame
+                db_records.append({
+                    "id": db_record.id,
+                    "metadata": db_record.metadata.dict(),
+                    "contents": db_record.contents,
+                    "embedding": db_record.embedding
+                })
+                
+                # Show progress every 10 companies
+                if i % 10 == 0:
+                    print(f"✅ Processed {i}/{len(companies)} companies...")
+                    
+            except Exception as e:
+                print(f"❌ Error processing company {raw_company.get('name', 'Unknown')}: {e}")
+                validation_errors += 1
+                continue
+        
+        if not db_records:
+            print("❌ No valid company records prepared for insertion")
+            return
+        
+        print(f"📊 Validation summary: {len(db_records)} valid, {validation_errors} errors")
+        
+        # Convert to DataFrame and insert
+        print(f"💾 Inserting {len(db_records)} companies into database table '{table_name}'...")
+        df = pd.DataFrame(db_records)
+        vec_store.upsert(df)
+        
+        print(f"✅ Successfully inserted {len(db_records)} companies into database!")
+        
+        # Show sample of inserted companies
+        print(f"\n📊 Sample of inserted companies:")
+        for i, record in enumerate(db_records[:5], 1):
+            metadata = record['metadata']
+            name = metadata.get('company_name', 'Unknown')
+            location = metadata.get('location', 'N/A')
+            tags = ', '.join(metadata.get('tags', []))[:30]
+            print(f"   {i}. {name} | {location} | {tags}")
+        
+        if len(db_records) > 5:
+            print(f"   ... and {len(db_records) - 5} more companies")
+            
+        # Show AI insights sample
+        if settings.scraper.enable_ai_insights and db_records:
+            sample_insights = db_records[0]['metadata'].get('ai_insights', {})
+            if sample_insights:
+                print(f"\n🤖 Sample AI insights for '{db_records[0]['metadata']['company_name']}':")
+                print(f"   Pitch: {sample_insights.get('pitch', 'N/A')[:100]}...")
+                print(f"   Features: {sample_insights.get('feature_summary', [])[:3]}")
+        
+    except Exception as e:
+        print(f"❌ Error inserting companies into database: {e}")
+        raise e
+
+
+async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=False, insert_to_db=True, table_name=None):
     """
     Scrape YCombinator companies using proxies with batch extraction.
     
@@ -42,6 +257,8 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
         proxies: List of proxy dictionaries (required)
         max_companies: Optional maximum number of companies to extract
         show_live: Whether to display companies as they are scraped
+        insert_to_db: Whether to insert scraped data into database (default: True)
+        table_name: Database table name for insertion
         
     Returns:
         List of company dictionaries
@@ -251,6 +468,20 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                 else:
                     print(f'✅ Successfully extracted {len(companies)} companies via batch method')
                 
+                # Insert into database if requested
+                if companies and insert_to_db:
+                    try:
+                        await insert_companies_to_database(companies, table_name)
+                    except Exception as e:
+                        print(f"❌ Database insertion failed: {e}")
+                        print("📁 Saving to JSON file as fallback...")
+                        # Save to JSON as fallback
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"ycombinator_companies_fallback_{timestamp}.json"
+                        with open(filename, 'w') as f:
+                            json.dump(companies, f, indent=2)
+                        print(f"💾 Saved {len(companies)} companies to {filename}")
+                
                 return companies
                 
             except Exception as e:
@@ -323,9 +554,9 @@ async def load_proxies(proxy_api_url=None, api_key=None):
         raise ValueError("No proxies available. Cannot proceed without proxies.")
 
 # Function to run the scraper periodically
-async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, api_key=None, max_companies_per_run=None, show_live=False):
+async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, api_key=None, max_companies_per_run=None, show_live=False, insert_to_db=True, table_name=None):
     """
-    Run the scraper periodically with batch extraction and detailed logging.
+    Run the scraper periodically with batch extraction, detailed logging, and database insertion.
     
     Args:
         interval_hours: Hours between scrape runs
@@ -333,6 +564,8 @@ async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, api_key=No
         api_key: API key for proxy service
         max_companies_per_run: Maximum companies to scrape per run (optional)
         show_live: Whether to display companies as they are scraped
+        insert_to_db: Whether to insert scraped data into database
+        table_name: Database table name for insertion
     """
     run_count = 0
     total_companies_scraped = 0
@@ -343,6 +576,9 @@ async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, api_key=No
         print(f"\n{'='*60}")
         print(f"🚀 Starting periodic scrape run #{run_count} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"📦 Using batch extraction with scrolling method")
+        print(f"💾 Database insertion: {'Enabled' if insert_to_db else 'Disabled'}")
+        if insert_to_db:
+            print(f"🗄️  Target table: {table_name or 'default'}")
         
         if max_companies_per_run:
             print(f"📊 Company cap for this run: {max_companies_per_run}")
@@ -354,11 +590,13 @@ async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, api_key=No
             # Load proxies before each scrape to ensure fresh proxies
             proxies = await load_proxies(proxy_api_url, api_key)
             
-            # Run scraper with company cap and batch method
+            # Run scraper with company cap, batch method, and database insertion
             companies = await scrape_ycombinator_companies(
                 proxies=proxies, 
                 max_companies=max_companies_per_run,
-                show_live=show_live
+                show_live=show_live,
+                insert_to_db=insert_to_db,
+                table_name=table_name
             )
             
             companies_this_run = len(companies) if companies else 0
@@ -421,15 +659,30 @@ async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, api_key=No
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description='YCombinator Company Scraper')
+    parser = argparse.ArgumentParser(description='YCombinator Company Scraper with Database Integration and Schema Validation')
     parser.add_argument('--once', action='store_true', help='Run the scraper once instead of periodically')
     parser.add_argument('--interval', type=float, default=24, help='Interval in hours for periodic scraping')
     parser.add_argument('--proxy-api', type=str, help='API URL to fetch proxy list')
     parser.add_argument('--api-key', type=str, help='API key for proxy service')
     parser.add_argument('--cap', type=int, default=50, help='Maximum number of companies to scrape per run (default: 50)')
     parser.add_argument('--show-live', action='store_true', default=True, help='Show companies as they are scraped (live mode) - enabled by default')
+    parser.add_argument('--no-db', action='store_true', help='Disable database insertion (save to JSON only)')
+    parser.add_argument('--table-name', type=str, help='Database table name (uses config default if not specified)')
+    parser.add_argument('--no-ai', action='store_true', help='Disable AI insights generation')
+    parser.add_argument('--no-embeddings', action='store_true', help='Disable embedding generation')
     
     args = parser.parse_args()
+    
+    # Load settings
+    settings = get_settings()
+    
+    # Override settings based on args
+    if args.no_ai:
+        settings.scraper.enable_ai_insights = False
+    if args.no_embeddings:
+        settings.scraper.enable_embeddings = False
+    
+    table_name = args.table_name or settings.scraper.default_table_name
     
     # Debug the API key values
     print(f"API key from args: '{args.api_key}'")
@@ -444,11 +697,17 @@ if __name__ == "__main__":
         sys.exit(1)
     
     # Show configuration
-    print(f"\n🔧 Scraper Configuration:")
+    print(f"\n🔧 Scraper Configuration (with Schema Validation):")
     print(f"   📊 Company cap per run: {args.cap}")
     print(f"   🔄 Periodic mode: {'No' if args.once else 'Yes'}")
     print(f"   👁️  Live display: {'Yes' if args.show_live else 'No'}")
+    print(f"   💾 Database insertion: {'No' if args.no_db else 'Yes'}")
+    print(f"   🤖 AI insights: {'Yes' if settings.scraper.enable_ai_insights else 'No'}")
+    print(f"   🎯 Embeddings: {'Yes' if settings.scraper.enable_embeddings else 'No'}")
+    if not args.no_db:
+        print(f"   🗄️  Database table: {table_name}")
     print(f"   🔗 Proxy retry attempts: 3")
+    print(f"   📋 Schema validation: Enabled")
     if not args.once:
         print(f"   ⏰ Interval: {args.interval} hours")
     
@@ -460,7 +719,9 @@ if __name__ == "__main__":
                 return await scrape_ycombinator_companies(
                     proxies=proxies,
                     max_companies=args.cap,
-                    show_live=args.show_live
+                    show_live=args.show_live,
+                    insert_to_db=not args.no_db,
+                    table_name=table_name
                 )
             except ValueError as e:
                 print(f"ERROR: {e}")
@@ -469,8 +730,14 @@ if __name__ == "__main__":
         print(f"\n🚀 Starting single scrape run...")
         companies = asyncio.run(run_once())
         
-        # Save to file for later analysis
-        if companies:
+        # Save to file for backup (even if inserted to DB)
+        if companies and not args.no_db:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"ycombinator_companies_backup_{timestamp}.json"
+            with open(filename, 'w') as f:
+                json.dump(companies, f, indent=2)
+            print(f"💾 Backup saved: {len(companies)} companies to {filename}")
+        elif companies:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"ycombinator_companies_{timestamp}.json"
             with open(filename, 'w') as f:
@@ -483,5 +750,7 @@ if __name__ == "__main__":
             proxy_api_url=args.proxy_api,
             api_key=api_key,
             max_companies_per_run=args.cap,
-            show_live=True
+            show_live=True,
+            insert_to_db=not args.no_db,
+            table_name=table_name
         ))
