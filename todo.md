@@ -71,3 +71,9 @@
 - [ ] communicate with local deepseek and make the system prompts for each field of the cards
 
 - [ ] a column that stores newly ai created field values
+
+- [ ] find the perfect system prompt for deepseek
+
+- [ ] set up an etl pipeline
+
+- [ ] make your project agentic by using vercel ai sdk
