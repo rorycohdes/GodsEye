@@ -1,4 +1,6 @@
-#Docker
+# GodsEye
+
+## Docker
 
 ### Activate virtual environment
 
@@ -18,6 +20,148 @@ or
 ```
 source venv/bin/activate
 ```
+
+## YCombinator Scraper
+
+### Prerequisites
+
+1. Set up environment variables in `.env` file:
+
+   ```
+   WEBSHARE_API_KEY=your_proxy_api_key
+   TIMESCALE_SERVICE_URL=your_database_url
+   ```
+
+2. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+### Running the Scraper
+
+#### Basic Commands
+
+**Single Run (Recommended for Testing):**
+
+```bash
+# Basic single run with 20 companies
+python scraper/ycombinator/ycombinator.py --once --cap 20
+
+# Quick test with minimal features (faster)
+python scraper/ycombinator/ycombinator.py --once --cap 5 --no-ai --no-embeddings
+```
+
+**Single Run with Database Integration:**
+
+```bash
+# Standard run with database insertion
+python scraper/ycombinator/ycombinator.py --once --cap 50
+
+# Use custom table name
+python scraper/ycombinator/ycombinator.py --once --cap 30 --table-name "yc_companies_2024"
+```
+
+**JSON-Only Mode (No Database):**
+
+```bash
+# Save to JSON file only
+python scraper/ycombinator/ycombinator.py --once --cap 25 --no-db
+```
+
+#### Advanced Options
+
+**Performance Tuning:**
+
+```bash
+# Disable AI insights for faster scraping
+python scraper/ycombinator/ycombinator.py --once --cap 100 --no-ai
+
+# Disable both AI and embeddings (fastest)
+python scraper/ycombinator/ycombinator.py --once --cap 100 --no-ai --no-embeddings
+```
+
+**Periodic Scraping:**
+
+```bash
+# Run every 12 hours
+python scraper/ycombinator/ycombinator.py --interval 12 --cap 50
+
+# Daily runs with custom table
+python scraper/ycombinator/ycombinator.py --interval 24 --cap 100 --table-name "daily_scrapes"
+```
+
+#### Command Reference
+
+```bash
+python scraper/ycombinator/ycombinator.py [OPTIONS]
+
+Options:
+  --once              Run once instead of periodically
+  --interval HOURS    Hours between runs (default: 24)
+  --cap NUMBER        Max companies per run (default: 50)
+  --table-name NAME   Custom database table name
+  --no-db             Save to JSON only (no database)
+  --no-ai             Disable AI insights generation
+  --no-embeddings     Disable embedding generation
+  --proxy-api URL     Custom proxy API URL
+  --api-key KEY       Proxy service API key
+  --show-live         Show companies as scraped (default: enabled)
+```
+
+#### Example Workflows
+
+**Testing/Development:**
+
+```bash
+# Quick test - 5 companies, no AI, no embeddings
+python scraper/ycombinator/ycombinator.py --once --cap 5 --no-ai --no-embeddings
+
+# Medium test - 20 companies with full features
+python scraper/ycombinator/ycombinator.py --once --cap 20
+```
+
+**Production Data Collection:**
+
+```bash
+# Full run with database integration
+python scraper/ycombinator/ycombinator.py --once --cap 200
+
+# Periodic production scraping
+python scraper/ycombinator/ycombinator.py --interval 24 --cap 100 --table-name "production_yc_data"
+```
+
+**Specific Use Cases:**
+
+```bash
+# Fast data collection (no AI processing)
+python scraper/ycombinator/ycombinator.py --once --cap 500 --no-ai --no-embeddings
+
+# AI insights focus (smaller batch with full processing)
+python scraper/ycombinator/ycombinator.py --once --cap 50
+
+# Backup to JSON (database issues)
+python scraper/ycombinator/ycombinator.py --once --cap 100 --no-db
+```
+
+**Quick Start Recommendation:**
+
+```bash
+# Start with this command for your first run:
+python scraper/ycombinator/ycombinator.py --once --cap 10
+```
+
+### Features
+
+- ✅ **Schema Validation** - Full Pydantic validation for data integrity
+- ✅ **Database Integration** - Automatic insertion into vector database
+- ✅ **AI Insights** - Generated company pitches and feature summaries
+- ✅ **Vector Embeddings** - For semantic search capabilities
+- ✅ **Batch Processing** - Efficient handling of large datasets
+- ✅ **Proxy Support** - Built-in proxy rotation for scraping
+- ✅ **Error Handling** - Comprehensive error tracking and recovery
+- ✅ **Progress Tracking** - Real-time scraping progress and statistics
+
+## API Development
 
 document.querySelector to get element of specific class very str8 forward
 
