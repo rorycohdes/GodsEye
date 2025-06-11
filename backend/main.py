@@ -55,6 +55,24 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
+def run_api_server(args):
+    """Run the FastAPI server"""
+    import uvicorn
+    
+    logger.info(f"Starting GodsEye API server on port {args.port}")
+    logger.info("API Documentation available at:")
+    logger.info(f"  - Swagger UI: http://localhost:{args.port}/docs")
+    logger.info(f"  - ReDoc: http://localhost:{args.port}/redoc")
+    logger.info(f"  - Real-time API: http://localhost:{args.port}/api/realtime/latest")
+    
+    uvicorn.run(
+        "main:app",  # Import string for the FastAPI app
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+        log_level="info"
+    )
+
 async def run_ycombinator_scraper(args):
     """Run the YCombinator scraper with the specified arguments"""
     logger.info("Starting YCombinator scraper")
@@ -67,33 +85,46 @@ async def run_ycombinator_scraper(args):
         masked_key = api_key[:4] + '*' * (len(api_key) - 8) + api_key[-4:] if len(api_key) > 8 else '****'
         logger.info(f"Using API key: {masked_key}")
     else:
-        logger.error("No API key provided. Set WEBSHARE_API_KEY in .env file or use --api-key")
-        return
+        logger.warning("No API key provided. Set WEBSHARE_API_KEY in .env file or use --api-key")
+        logger.info("Proceeding without proxy - this may result in rate limiting")
     
     if args.periodic:
         logger.info(f"Running in periodic mode with {args.interval} hour interval")
         await run_periodic_scraper(
             interval_hours=args.interval,
             proxy_api_url=args.proxy_api,
-            api_key=api_key
+            api_key=api_key,
+            max_companies_per_run=args.cap,
+            show_live=args.show_live,
+            insert_to_db=not args.no_db,
+            table_name=args.table_name
         )
     else:
         logger.info("Running scraper once")
         try:
-            proxies = await load_proxies(args.proxy_api, api_key)
+            proxies = await load_proxies(args.proxy_api, api_key) if api_key else []
             companies = await scrape_ycombinator_companies(
                 proxies=proxies,
-                limit_pages=args.limit
+                max_companies=args.cap,
+                show_live=args.show_live,
+                insert_to_db=not args.no_db,
+                table_name=args.table_name
             )
-            logger.info(f"Scraping completed. Scraped {len(companies)} companies.")
-        except ValueError as e:
+            logger.info(f"Scraping completed. Scraped {len(companies) if companies else 0} companies.")
+        except Exception as e:
             logger.error(f"Scraping failed: {e}")
             sys.exit(1)
 
 def main():
     """Main entry point for the backend"""
-    parser = argparse.ArgumentParser(description='Backend Services')
+    parser = argparse.ArgumentParser(description='GodsEye Backend Services')
     subparsers = parser.add_subparsers(dest='command', help='Command to run')
+    
+    # API Server command (default for frontend connectivity)
+    api_parser = subparsers.add_parser('server', help='Run FastAPI server (for frontend connectivity)')
+    api_parser.add_argument('--host', type=str, default='0.0.0.0', help='Host to bind to')
+    api_parser.add_argument('--port', type=int, default=8000, help='Port to run the API server on')
+    api_parser.add_argument('--reload', action='store_true', help='Enable auto-reload for development')
     
     # YCombinator scraper command
     yc_parser = subparsers.add_parser('yc-scraper', help='Run YCombinator scraper')
@@ -101,24 +132,24 @@ def main():
     yc_parser.add_argument('--interval', type=float, default=24, help='Interval in hours for periodic scraping')
     yc_parser.add_argument('--proxy-api', type=str, help='API URL to fetch proxy list')
     yc_parser.add_argument('--api-key', type=str, help='API key for proxy service')
-    yc_parser.add_argument('--limit', type=int, help='Limit scraping to N pages (for testing)')
-    
-    # Add more commands for other backend services here
-    # Example:
-    # api_parser = subparsers.add_parser('api', help='Run API server')
-    # api_parser.add_argument('--port', type=int, default=8000, help='Port to run the API server on')
+    yc_parser.add_argument('--cap', type=int, help='Maximum companies to scrape')
+    yc_parser.add_argument('--show-live', action='store_true', help='Show companies as they are scraped')
+    yc_parser.add_argument('--no-db', action='store_true', help='Skip database insertion (JSON only)')
+    yc_parser.add_argument('--table-name', type=str, help='Database table name to use')
     
     args = parser.parse_args()
     
     if not args.command:
-        parser.print_help()
+        # Default to server if no command specified
+        logger.info("No command specified, starting API server...")
+        server_args = argparse.Namespace(host='0.0.0.0', port=8000, reload=False)
+        run_api_server(server_args)
         return
     
-    if args.command == 'yc-scraper':
+    if args.command == 'server':
+        run_api_server(args)
+    elif args.command == 'yc-scraper':
         asyncio.run(run_ycombinator_scraper(args))
-    # Add more command handlers here
-    # elif args.command == 'api':
-    #     run_api_server(args)
     else:
         parser.print_help()
 
