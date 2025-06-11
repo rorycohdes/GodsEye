@@ -100,7 +100,6 @@ def prepare_scraped_company_for_db(
     scraper_metadata = ScraperMetadata(
         index=scraped_company.index,
         scraped_at=datetime.now().isoformat(),
-        scraper_version="2.0",  # Updated version with schema validation
         batch_number=batch_number
     )
     
@@ -111,7 +110,6 @@ def prepare_scraped_company_for_db(
         tags=scraped_company.tags,
         url=scraped_company.url or "",
         logo_url=scraped_company.logo_url,
-        extraction_method=scraped_company.extraction_method or "scraper",
         created_at=datetime.now().isoformat(),
         ai_insights=ai_insights,
         scraper_metadata=scraper_metadata

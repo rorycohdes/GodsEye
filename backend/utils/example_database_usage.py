@@ -28,8 +28,7 @@ def load_sample_companies() -> List[Dict]:
             "description": "AI-powered business automation platform",
             "tags": ["AI", "Automation", "B2B", "SaaS"],
             "url": "https://example.com/techcorp",
-            "logo_url": "https://example.com/logos/techcorp.png",
-            "extraction_method": "manual_entry"
+            "logo_url": "https://example.com/logos/techcorp.png"
         },
         {
             "index": 2,
@@ -38,8 +37,7 @@ def load_sample_companies() -> List[Dict]:
             "description": "Sustainable energy management solutions",
             "tags": ["GreenTech", "Energy", "Sustainability"],
             "url": "https://example.com/greentech",
-            "logo_url": None,
-            "extraction_method": "api_import"
+            "logo_url": None
         },
         {
             "index": 3,
@@ -48,8 +46,7 @@ def load_sample_companies() -> List[Dict]:
             "description": "Real-time data processing and analytics",
             "tags": ["Analytics", "Data", "Real-time"],
             "url": "https://example.com/dataflow",
-            "logo_url": "https://example.com/logos/dataflow.png",
-            "extraction_method": "csv_import"
+            "logo_url": "https://example.com/logos/dataflow.png"
         }
     ]
 
@@ -89,10 +86,9 @@ def example_batch_processing():
             "name": f"Company {i + 1}",
             "location": f"City {i + 1}",
             "description": f"Description for company {i + 1}",
-            "tags": ["Tag1", "Tag2"],
-            "url": f"https://example.com/company{i + 1}",
-            "logo_url": None,
-            "extraction_method": "batch_generation"
+                         "tags": ["Tag1", "Tag2"],
+             "url": f"https://example.com/company{i + 1}",
+             "logo_url": None
         })
     
     # Process in batches of 10
@@ -117,27 +113,24 @@ def example_validation():
     
     # Test with both valid and invalid data
     test_companies = [
-        {
-            "name": "Valid Company",
-            "location": "Valid Location",
-            "description": "Valid description",
-            "tags": ["Valid", "Tags"],
-            "url": "https://valid.com",
-            "extraction_method": "test"
-        },
-        {
-            # Missing name and URL - should be rejected
-            "location": "Some Location",
-            "description": "No name or URL",
-            "tags": ["Invalid"],
-            "extraction_method": "test"
-        },
-        {
-            "name": "Another Valid Company",
-            "description": "Another valid description",
-            # Missing some optional fields - should be accepted
-            "extraction_method": "test"
-        }
+                 {
+             "name": "Valid Company",
+             "location": "Valid Location",
+             "description": "Valid description",
+             "tags": ["Valid", "Tags"],
+             "url": "https://valid.com"
+         },
+         {
+             # Missing name and URL - should be rejected
+             "location": "Some Location",
+             "description": "No name or URL",
+             "tags": ["Invalid"]
+         },
+         {
+             "name": "Another Valid Company",
+             "description": "Another valid description"
+             # Missing some optional fields - should be accepted
+         }
     ]
     
     valid_count = 0

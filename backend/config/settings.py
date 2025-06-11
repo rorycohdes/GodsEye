@@ -82,7 +82,6 @@ class ScrapedCompanyData(BaseModel):
     tags: List[str] = Field(default_factory=list, description="Company tags/categories")
     url: Optional[str] = Field(None, description="Company profile URL")
     logo_url: Optional[str] = Field(None, description="Company logo URL")
-    extraction_method: Optional[str] = Field(None, description="Method used for extraction (playwright/javascript)")
 
 
 class ScraperMetadata(BaseModel):
@@ -90,7 +89,6 @@ class ScraperMetadata(BaseModel):
     
     index: Optional[int] = Field(None, description="Original scraper index")
     scraped_at: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Timestamp when scraped")
-    scraper_version: str = Field(default="1.0", description="Version of the scraper used")
     batch_number: Optional[int] = Field(None, description="Batch number if using batch extraction")
 
 
@@ -102,7 +100,6 @@ class CompanyMetadata(BaseModel):
     tags: List[str] = Field(default_factory=list, description="Company tags/categories")
     url: str = Field(default="", description="Company profile URL")
     logo_url: Optional[str] = Field(None, description="Company logo URL")
-    extraction_method: str = Field(default="ycombinator_scraper", description="Method used for data extraction")
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Record creation timestamp")
     ai_insights: CompanySynthesis = Field(default_factory=CompanySynthesis, description="AI-generated insights")
     scraper_metadata: ScraperMetadata = Field(default_factory=ScraperMetadata, description="Scraper-specific metadata")
