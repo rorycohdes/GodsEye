@@ -191,8 +191,6 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                     
                     if initial_count == 0:
                         print('No companies found in results section')
-                        # Take screenshot for debugging
-                        await page.screenshot(path="no_companies_in_results.png")
                         
                 except Exception as e:
                     print(f'Error accessing results section: {e}')
@@ -203,7 +201,6 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                             print('Found results with alternative selector')
                         else:
                             print('No results section found with any selector')
-                            await page.screenshot(path="no_results_section.png")
                             raise Exception('Could not find results section')
                     except Exception as alt_error:
                         raise Exception(f'Could not access results section: {alt_error}')
@@ -278,12 +275,6 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                 
             except Exception as e:
                 print(f"❌ Error during scraping with proxy attempt {attempt + 1}: {e}")
-                # Take screenshot for debugging
-                try:
-                    await page.screenshot(path=f"error_screenshot_attempt_{attempt + 1}.png")
-                    print(f"📸 Screenshot saved for debugging (attempt {attempt + 1})")
-                except:
-                    pass
                 
                 await browser.close()
                 
