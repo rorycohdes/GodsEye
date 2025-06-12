@@ -77,3 +77,5 @@
 - [ ] set up an etl pipeline
 
 - [ ] make your project agentic by using vercel ai sdk
+
+- [ ] make sure that whenever a scrape occurs it's only new companies
