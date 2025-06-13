@@ -1,0 +1,104 @@
+{
+  "companies": [
+    {
+      "index": 0,
+      "name": "DataFlow Analytics",
+      "location": "San Francisco, CA",
+      "description": "AI-powered data analytics platform that helps businesses make data-driven decisions through real-time insights and predictive modeling.",
+      "tags": ["Analytics", "AI", "SaaS", "B2B"],
+      "url": "https://www.ycombinator.com/companies/dataflow-analytics",
+      "logo_url": "https://example.com/logos/dataflow.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 1,
+      "name": "GreenTech Solutions",
+      "location": "Austin, TX",
+      "description": "Sustainable technology solutions for renewable energy management and smart grid optimization.",
+      "tags": ["GreenTech", "Energy", "IoT", "Sustainability"],
+      "url": "https://www.ycombinator.com/companies/greentech-solutions",
+      "logo_url": "https://example.com/logos/greentech.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 2,
+      "name": "MedConnect Pro",
+      "location": "Boston, MA",
+      "description": "Telemedicine platform connecting patients with healthcare providers through secure video consultations and AI health assessments.",
+      "tags": ["Healthcare", "Telemedicine", "AI", "Mobile"],
+      "url": "https://www.ycombinator.com/companies/medconnect-pro",
+      "logo_url": "https://example.com/logos/medconnect.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 3,
+      "name": "FinanceFlow",
+      "location": "New York, NY",
+      "description": "Automated financial planning and investment management platform for small businesses and freelancers.",
+      "tags": ["Fintech", "Automation", "SMB", "Investment"],
+      "url": "https://www.ycombinator.com/companies/financeflow",
+      "logo_url": "https://example.com/logos/financeflow.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 4,
+      "name": "EduTech Learn",
+      "location": "Seattle, WA",
+      "description": "Personalized learning platform using AI to adapt educational content to individual student needs and learning styles.",
+      "tags": ["EdTech", "AI", "Personalization", "K-12"],
+      "url": "https://www.ycombinator.com/companies/edutech-learn",
+      "logo_url": "https://example.com/logos/edutech.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 5,
+      "name": "CloudSecure",
+      "location": "Palo Alto, CA",
+      "description": "Advanced cybersecurity solutions for cloud infrastructure with real-time threat detection and automated response systems.",
+      "tags": ["Cybersecurity", "Cloud", "AI", "Enterprise"],
+      "url": "https://www.ycombinator.com/companies/cloudsecure",
+      "logo_url": "https://example.com/logos/cloudsecure.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 6,
+      "name": "FoodDelivery Plus",
+      "location": "Los Angeles, CA",
+      "description": "Hyperlocal food delivery platform specializing in farm-to-table restaurants and sustainable packaging solutions.",
+      "tags": ["Food Delivery", "Sustainability", "Local", "Mobile"],
+      "url": "https://www.ycombinator.com/companies/fooddelivery-plus",
+      "logo_url": "https://example.com/logos/fooddelivery.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 7,
+      "name": "WorkFlow Automation",
+      "location": "Chicago, IL",
+      "description": "No-code workflow automation platform that helps businesses streamline repetitive tasks and improve productivity.",
+      "tags": ["Automation", "No-Code", "Productivity", "B2B"],
+      "url": "https://www.ycombinator.com/companies/workflow-automation",
+      "logo_url": "https://example.com/logos/workflow.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 8,
+      "name": "SportsTech Analytics",
+      "location": "Denver, CO",
+      "description": "Advanced sports analytics platform providing real-time performance insights for professional teams and athletes.",
+      "tags": ["Sports", "Analytics", "Performance", "AI"],
+      "url": "https://www.ycombinator.com/companies/sportstech-analytics",
+      "logo_url": "https://example.com/logos/sportstech.png",
+      "extraction_method": "artificial"
+    },
+    {
+      "index": 9,
+      "name": "RetailAI Insights",
+      "location": "Miami, FL",
+      "description": "AI-powered retail optimization platform helping stores improve inventory management and customer experience through predictive analytics.",
+      "tags": ["Retail", "AI", "Inventory", "Customer Experience"],
+      "url": "https://www.ycombinator.com/companies/retailai-insights",
+      "logo_url": "https://example.com/logos/retailai.png",
+      "extraction_method": "artificial"
+    }
+  ]
+}

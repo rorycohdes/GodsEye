@@ -16,6 +16,7 @@ def fetch_proxies(api_url, api_key=None):
     if api_key:
         # Webshare specifically uses this header format
         headers['Authorization'] = f'Token {api_key}'
+        print(f"Using API key format: Token {api_key[:4]}...{api_key[-4:] if len(api_key) > 8 else '****'}")
     
     try:
         print(f"Fetching proxies from: {api_url}")
@@ -28,14 +29,25 @@ def fetch_proxies(api_url, api_key=None):
         
         if response.status_code != 200:
             print(f"API error response: {response.text}")
+            raise ValueError(f"API request failed with status {response.status_code}: {response.text}")
             
-        response.raise_for_status()  # Raise exception for 4XX/5XX responses
-        
         data = response.json()
+        print(f"API response keys: {list(data.keys())}")
         
         # Extract the proxy results from the JSON response
         if 'results' in data and isinstance(data['results'], list):
-            return data['results']
+            proxies = data['results']
+            print(f"Found {len(proxies)} proxies in response")
+            if proxies:
+                # Print first proxy details (without sensitive info)
+                first_proxy = proxies[0]
+                print("First proxy details:")
+                print(f"  Address: {first_proxy.get('proxy_address', 'N/A')}")
+                print(f"  Port: {first_proxy.get('port', 'N/A')}")
+                print(f"  Country: {first_proxy.get('country_code', 'N/A')}")
+                print(f"  Username: {first_proxy.get('username', 'N/A')[:4]}...")
+                print(f"  Password: {'*' * 8}")
+            return proxies
         else:
             # Print the actual response structure for debugging
             print(f"Unexpected API response format: {data.keys()}")
@@ -72,11 +84,26 @@ def parse_proxy(proxy_dict):
     Returns:
         Dictionary with proxy configuration for Playwright
     """
-    return {
+    # Validate required fields
+    required_fields = ['proxy_address', 'port', 'username', 'password']
+    missing_fields = [field for field in required_fields if field not in proxy_dict]
+    if missing_fields:
+        print(f"⚠️  Missing required proxy fields: {missing_fields}")
+        print(f"Available fields: {list(proxy_dict.keys())}")
+        raise ValueError(f"Invalid proxy format. Missing fields: {missing_fields}")
+    
+    proxy_config = {
         "server": f"http://{proxy_dict['proxy_address']}:{proxy_dict['port']}",
         "username": proxy_dict['username'],
         "password": proxy_dict['password'],
     }
+    
+    print(f"Parsed proxy configuration:")
+    print(f"  Server: {proxy_config['server']}")
+    print(f"  Username: {proxy_config['username'][:4]}...")
+    print(f"  Password: {'*' * 8}")
+    
+    return proxy_config
 
 def get_proxy_info_string(proxy_dict):
     """

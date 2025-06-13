@@ -10,6 +10,8 @@ actions button group in studio section (for like common prompts I would as an ai
 different chat sessions
 notion like templates for sessions with different sources and actions
 
+app in action section where it is images of the functions of the application
+
 webscrape y combinator, linkedin, reddit, hubspot blogs, product hunt, webscrape for VSs or funds for startups
 
 view for the webscraping databases like the hiring cafe but notion esc (maybe different views)
