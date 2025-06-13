@@ -45,7 +45,7 @@ if webshare_api_key is None:
 
 
 
-async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=False, insert_to_db=True, table_name=None):
+async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=False, insert_to_db=True, table_name=None, save_backup=True):
     """
     Scrape YCombinator companies using proxies with batch extraction.
     
@@ -55,6 +55,7 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
         show_live: Whether to display companies as they are scraped
         insert_to_db: Whether to insert scraped data into database (default: True)
         table_name: Database table name for insertion
+        save_backup: Whether to save scraped data to JSON file (default: True)
         
     Returns:
         List of company dictionaries
@@ -270,16 +271,19 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                         await insert_companies_to_database(companies, table_name, "ycombinator_scraper")
                     except Exception as e:
                         print(f"❌ Database insertion failed: {e}")
-                        print("📁 Saving to JSON file as fallback...")
-                        # Save to JSON as fallback in data directory
-                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        filename = os.path.join(data_dir, f"ycombinator_companies_fallback_{timestamp}.json")
-                        with open(filename, 'w') as f:
-                            json.dump(companies, f, indent=2)
-                        print(f"💾 Saved {len(companies)} companies to {filename}")
+                        if save_backup:
+                            print("📁 Saving to JSON file as fallback...")
+                            # Save to JSON as fallback in data directory
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            filename = os.path.join(data_dir, f"ycombinator_companies_fallback_{timestamp}.json")
+                            with open(filename, 'w') as f:
+                                json.dump(companies, f, indent=2)
+                            print(f"💾 Saved {len(companies)} companies to {filename}")
+                        else:
+                            print("⚠️  Database insertion failed and backup is disabled. Data may be lost.")
                 
                 # Save companies to JSON file if not inserting to DB or if DB insertion fails
-                if companies:
+                if companies and save_backup:
                     try:
                         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                         if not insert_to_db:
@@ -299,16 +303,19 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                             print(f"✅ Successfully saved {len(companies)} companies to {filename}")
                         except Exception as write_error:
                             print(f"❌ Error writing JSON file: {write_error}")
-                            # Try alternative filename if the first attempt fails
-                            alt_filename = os.path.join(data_dir, f"ycombinator_companies_emergency_{timestamp}.json")
-                            try:
-                                with open(alt_filename, 'w', encoding='utf-8') as f:
-                                    json.dump(companies, f, indent=2, ensure_ascii=False)
-                                print(f"✅ Successfully saved to emergency backup file: {alt_filename}")
-                            except Exception as alt_error:
-                                print(f"❌ Emergency backup also failed: {alt_error}")
+                            if not insert_to_db:
+                                # Try alternative filename if the first attempt fails
+                                alt_filename = os.path.join(data_dir, f"ycombinator_companies_emergency_{timestamp}.json")
+                                try:
+                                    with open(alt_filename, 'w', encoding='utf-8') as f:
+                                        json.dump(companies, f, indent=2, ensure_ascii=False)
+                                    print(f"✅ Successfully saved to emergency backup file: {alt_filename}")
+                                except Exception as alt_error:
+                                    print(f"❌ Emergency backup also failed: {alt_error}")
                     except Exception as save_error:
                         print(f"❌ Error during JSON file creation: {save_error}")
+                elif companies and not save_backup:
+                    print("ℹ️  JSON backup storage is disabled (--no-backup mode)")
                 
                 return companies
                 

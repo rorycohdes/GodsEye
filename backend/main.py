@@ -119,6 +119,7 @@ async def run_ycombinator_scraper(args):
     logger.info(f"   🔄 Periodic mode: {'Yes' if args.periodic else 'No'}")
     logger.info(f"   👁️  Live display: {'Yes' if args.show_live else 'No'}")
     logger.info(f"   💾 Database insertion: {'No' if args.no_db else 'Yes'}")
+    logger.info(f"   📁 JSON backup: {'Disabled' if args.no_backup else 'Enabled'}")
     logger.info(f"   🤖 AI insights: {'No' if args.no_db or args.no_ai else 'Yes'}")
     logger.info(f"   🎯 Embeddings: {'No' if args.no_db or args.no_embeddings else 'Yes'}")
     if not args.no_db:
@@ -137,7 +138,8 @@ async def run_ycombinator_scraper(args):
                         max_companies=args.cap,
                         show_live=args.show_live,
                         insert_to_db=not args.no_db,
-                        table_name=table_name
+                        table_name=table_name,
+                        save_backup=not args.no_backup
                     )
                     
                     # Additional verification for --no-db mode
@@ -229,6 +231,7 @@ def main():
     yc_parser.add_argument('--cap', type=int, default=50, help='Maximum companies to scrape (default: 50)')
     yc_parser.add_argument('--show-live', action='store_true', default=True, help='Show companies as they are scraped (live mode) - enabled by default')
     yc_parser.add_argument('--no-db', action='store_true', help='Disable database insertion, embeddings, and AI insights (JSON only)')
+    yc_parser.add_argument('--no-backup', action='store_true', help='Disable JSON file backup storage (data will only be stored in database if --no-db is not used)')
     yc_parser.add_argument('--table-name', type=str, help='Database table name to use')
     yc_parser.add_argument('--no-ai', action='store_true', help='Disable AI insights generation')
     yc_parser.add_argument('--no-embeddings', action='store_true', help='Disable embedding generation')
@@ -250,13 +253,26 @@ def main():
                 masked_key = api_key[:4] + '*' * (len(api_key) - 8) + api_key[-4:] if len(api_key) > 8 else '****'
                 logger.info(f"Using API key: {masked_key}")
                 
+                # Log configuration
+                logger.info(f"\n🔧 Scraper Configuration:")
+                logger.info(f"   📊 Company cap: {args.cap}")
+                logger.info(f"   🔄 Periodic mode: {'Yes' if args.periodic else 'No'}")
+                logger.info(f"   👁️  Live display: {'Yes' if args.show_live else 'No'}")
+                logger.info(f"   💾 Database insertion: {'No' if args.no_db else 'Yes'}")
+                logger.info(f"   📁 JSON backup: {'Disabled' if args.no_backup else 'Enabled'}")
+                logger.info(f"   🤖 AI insights: {'No' if args.no_db or args.no_ai else 'Yes'}")
+                logger.info(f"   🎯 Embeddings: {'No' if args.no_db or args.no_embeddings else 'Yes'}")
+                if not args.no_db:
+                    logger.info(f"   🗄️  Database table: {args.table_name}")
+                
                 proxies = await load_proxies(args.proxy_api, api_key)
                 companies = await scrape_ycombinator_companies(
                     proxies=proxies,
                     max_companies=args.cap,
                     show_live=args.show_live,
                     insert_to_db=not args.no_db,
-                    table_name=args.table_name
+                    table_name=args.table_name,
+                    save_backup=not args.no_backup
                 )
                 return companies
             except Exception as e:
