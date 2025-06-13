@@ -85,3 +85,5 @@
 - [ ] setup scraper so that it only gets latest companies from the scrape
 
 - [ ] setup something like a client for the proxy connections
+
+- [ ] observe caveats for running files concurrently and implement necessary safe gaurds
