@@ -81,7 +81,7 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
             
             # Launch browser with proxy
             browser = await p.chromium.launch(
-                headless=False, 
+                headless=True,  # Changed to headless mode
                 **browser_options,
                 args=[
                     '--no-sandbox',
@@ -89,7 +89,9 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                     '--disable-dev-shm-usage',
                     '--disable-accelerated-2d-canvas',
                     '--disable-gpu',
-                    '--window-size=1920x1080'
+                    '--window-size=1920x1080',
+                    '--single-process',  # Added single process mode
+                    '--no-zygote'  # Added no zygote mode
                 ]
             )
             
@@ -229,9 +231,10 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                         print(f"\n📦 Batch {batch_num} Companies ({batch_start + 1}-{batch_end}):")
                         for i in range(batch_start, batch_end):
                             company = companies[i]
-                            name = company.get('name', 'Unknown')[:30].ljust(30)
-                            location = company.get('location', 'N/A')[:20].ljust(20)
-                            tags = ', '.join(company.get('tags', [])[:2])[:25].ljust(25)
+                            # Add robust None handling for string formatting
+                            name = str(company.get('name', 'Unknown') or 'Unknown')[:30].ljust(30)
+                            location = str(company.get('location', 'N/A') or 'N/A')[:20].ljust(20)
+                            tags = ', '.join(str(tag) for tag in (company.get('tags', []) or [])[:2])[:25].ljust(25)
                             print(f"   {i+1:3d}. {name} | {location} | {tags}")
                     
                     if len(companies) > 100:
@@ -397,8 +400,9 @@ async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, api_key=No
                 if new_companies:
                     print(f"\n🆕 New companies discovered in run #{run_count}:")
                     for i, company in enumerate(new_companies[:10], 1):  # Show first 10 new
-                        name = company.get('name', 'Unknown')
-                        location = company.get('location', 'N/A')
+                        # Add robust None handling for string formatting
+                        name = str(company.get('name', 'Unknown') or 'Unknown')
+                        location = str(company.get('location', 'N/A') or 'N/A')
                         print(f"   {i:2d}. {name} ({location})")
                     if len(new_companies) > 10:
                         print(f"   ... and {len(new_companies) - 10} more new companies")
@@ -414,9 +418,10 @@ async def run_periodic_scraper(interval_hours=24, proxy_api_url=None, api_key=No
                 top_companies = sorted(all_time_companies, 
                                      key=lambda x: len(x.get('tags', [])), reverse=True)[:5]
                 for i, company in enumerate(top_companies, 1):
-                    name = company.get('name', 'Unknown')[:30]
-                    tag_count = len(company.get('tags', []))
-                    location = company.get('location', 'N/A')[:15]
+                    # Add robust None handling for string formatting
+                    name = str(company.get('name', 'Unknown') or 'Unknown')[:30]
+                    tag_count = len(company.get('tags', []) or [])
+                    location = str(company.get('location', 'N/A') or 'N/A')[:15]
                     print(f"  {i}. {name} ({tag_count} tags, {location})")
                 print("-" * 60)
             

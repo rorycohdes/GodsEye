@@ -42,9 +42,9 @@ class CompanyExtractor:
             if new_companies:
                 print(f"📋 Companies in batch #{batch_number}:")
                 for i, company in enumerate(new_companies, 1):
-                    name = company.get('name', 'Unknown')
-                    location = company.get('location', 'N/A')
-                    tags = ', '.join(company.get('tags', [])[:2])
+                    name = str(company.get('name', 'Unknown') or 'Unknown')
+                    location = str(company.get('location', 'N/A') or 'N/A')
+                    tags = ', '.join(str(tag) for tag in (company.get('tags', []) or [])[:2])
                     print(f"   {i:2d}. {name:<30} | {location:<20} | {tags}")
             
             # Check if we've reached the company cap
@@ -167,9 +167,9 @@ class CompanyExtractor:
                         
                         # Show live display if enabled
                         if self.show_live:
-                            name = company_data.get('name', 'Unknown')[:30]
-                            location = company_data.get('location', 'N/A')[:20]
-                            tags = ', '.join(company_data.get('tags', [])[:2])[:30]
+                            name = str(company_data.get('name', 'Unknown') or 'Unknown')[:30]
+                            location = str(company_data.get('location', 'N/A') or 'N/A')[:20]
+                            tags = ', '.join(str(tag) for tag in (company_data.get('tags', []) or [])[:2])[:30]
                             print(f"📍 Live: {len(companies):3d}. {name} | {location} | {tags}")
                         
                 except Exception as e:
