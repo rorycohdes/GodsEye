@@ -29,6 +29,10 @@ base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 env_path = os.path.join(base_dir, '.env')
 load_dotenv(dotenv_path=env_path)
 
+# Create data directory if it doesn't exist
+data_dir = os.path.join(base_dir, 'data')
+os.makedirs(data_dir, exist_ok=True)
+
 webshare_api_key = os.getenv("WEBSHARE_API_KEY")
 print(f"webshare_api_key: {webshare_api_key}")
 
@@ -267,12 +271,44 @@ async def scrape_ycombinator_companies(proxies, max_companies=None, show_live=Fa
                     except Exception as e:
                         print(f"❌ Database insertion failed: {e}")
                         print("📁 Saving to JSON file as fallback...")
-                        # Save to JSON as fallback
+                        # Save to JSON as fallback in data directory
                         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        filename = f"ycombinator_companies_fallback_{timestamp}.json"
+                        filename = os.path.join(data_dir, f"ycombinator_companies_fallback_{timestamp}.json")
                         with open(filename, 'w') as f:
                             json.dump(companies, f, indent=2)
                         print(f"💾 Saved {len(companies)} companies to {filename}")
+                
+                # Save companies to JSON file if not inserting to DB or if DB insertion fails
+                if companies:
+                    try:
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        if not insert_to_db:
+                            filename = os.path.join(data_dir, f"ycombinator_companies_{timestamp}.json")
+                            print(f"📁 Saving companies to JSON file (--no-db mode): {filename}")
+                        else:
+                            filename = os.path.join(data_dir, f"ycombinator_companies_backup_{timestamp}.json")
+                            print(f"📁 Saving companies to backup JSON file: {filename}")
+                        
+                        # Ensure the data directory exists
+                        os.makedirs(data_dir, exist_ok=True)
+                        
+                        # Write the JSON file with proper error handling
+                        try:
+                            with open(filename, 'w', encoding='utf-8') as f:
+                                json.dump(companies, f, indent=2, ensure_ascii=False)
+                            print(f"✅ Successfully saved {len(companies)} companies to {filename}")
+                        except Exception as write_error:
+                            print(f"❌ Error writing JSON file: {write_error}")
+                            # Try alternative filename if the first attempt fails
+                            alt_filename = os.path.join(data_dir, f"ycombinator_companies_emergency_{timestamp}.json")
+                            try:
+                                with open(alt_filename, 'w', encoding='utf-8') as f:
+                                    json.dump(companies, f, indent=2, ensure_ascii=False)
+                                print(f"✅ Successfully saved to emergency backup file: {alt_filename}")
+                            except Exception as alt_error:
+                                print(f"❌ Emergency backup also failed: {alt_error}")
+                    except Exception as save_error:
+                        print(f"❌ Error during JSON file creation: {save_error}")
                 
                 return companies
                 
@@ -504,13 +540,40 @@ if __name__ == "__main__":
         async def run_once():
             try:
                 proxies = await load_proxies(args.proxy_api, api_key)
-                return await scrape_ycombinator_companies(
+                companies = await scrape_ycombinator_companies(
                     proxies=proxies,
                     max_companies=args.cap,
                     show_live=args.show_live,
-                    insert_to_db=not args.no_db,
+                    insert_to_db=not args.no_db,  # This is the key flag for --no-db
                     table_name=table_name
                 )
+                
+                # Additional verification for --no-db mode
+                if args.no_db and companies:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = os.path.join(data_dir, f"ycombinator_companies_{timestamp}.json")
+                    try:
+                        # Ensure the data directory exists
+                        os.makedirs(data_dir, exist_ok=True)
+                        
+                        # Double-check the file was created
+                        if not os.path.exists(filename):
+                            print(f"📝 Creating JSON file for --no-db mode: {filename}")
+                            with open(filename, 'w', encoding='utf-8') as f:
+                                json.dump(companies, f, indent=2, ensure_ascii=False)
+                            print(f"✅ Verified JSON file creation: {filename}")
+                    except Exception as e:
+                        print(f"❌ Error in --no-db file creation: {e}")
+                        # Try one last time with a different filename
+                        emergency_filename = os.path.join(data_dir, f"ycombinator_companies_final_{timestamp}.json")
+                        try:
+                            with open(emergency_filename, 'w', encoding='utf-8') as f:
+                                json.dump(companies, f, indent=2, ensure_ascii=False)
+                            print(f"✅ Saved to emergency file: {emergency_filename}")
+                        except Exception as final_error:
+                            print(f"❌ Final attempt failed: {final_error}")
+                
+                return companies
             except ValueError as e:
                 print(f"ERROR: {e}")
                 sys.exit(1)
@@ -521,13 +584,13 @@ if __name__ == "__main__":
         # Save to file for backup (even if inserted to DB)
         if companies and not args.no_db:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"ycombinator_companies_backup_{timestamp}.json"
+            filename = os.path.join(data_dir, f"ycombinator_companies_backup_{timestamp}.json")
             with open(filename, 'w') as f:
                 json.dump(companies, f, indent=2)
             print(f"💾 Backup saved: {len(companies)} companies to {filename}")
         elif companies:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"ycombinator_companies_{timestamp}.json"
+            filename = os.path.join(data_dir, f"ycombinator_companies_{timestamp}.json")
             with open(filename, 'w') as f:
                 json.dump(companies, f, indent=2)
             print(f"💾 Saved {len(companies)} companies to {filename}")
