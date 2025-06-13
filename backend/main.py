@@ -9,6 +9,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import sql_routes, vector_routes, realtime_routes
+import threading
 
 # Configure logging
 logging.basicConfig(
@@ -115,6 +116,13 @@ async def run_ycombinator_scraper(args):
             logger.error(f"Scraping failed: {e}")
             sys.exit(1)
 
+def run_server_in_thread(args):
+    """Run the API server in a separate thread"""
+    server_thread = threading.Thread(target=run_api_server, args=(args,))
+    server_thread.daemon = True  # Thread will exit when main program exits
+    server_thread.start()
+    return server_thread
+
 def main():
     """Main entry point for the backend"""
     parser = argparse.ArgumentParser(description='GodsEye Backend Services')
@@ -139,19 +147,38 @@ def main():
     
     args = parser.parse_args()
     
-    if not args.command:
-        # Default to server if no command specified
-        logger.info("No command specified, starting API server...")
-        server_args = argparse.Namespace(host='0.0.0.0', port=8000, reload=False)
-        run_api_server(server_args)
-        return
+    # Always start the server in a separate thread
+    server_args = argparse.Namespace(host='0.0.0.0', port=8000, reload=False)
+    server_thread = run_server_in_thread(server_args)
+    logger.info("API server started in background thread")
     
-    if args.command == 'server':
-        run_api_server(args)
+    if not args.command:
+        # Default to one-time scraping if no command specified
+        logger.info("No command specified, running one-time scraper...")
+        scraper_args = argparse.Namespace(
+            periodic=False,
+            interval=24,
+            proxy_api=None,
+            api_key=None,
+            cap=None,
+            show_live=False,
+            no_db=False,
+            table_name=None
+        )
+        asyncio.run(run_ycombinator_scraper(scraper_args))
     elif args.command == 'yc-scraper':
         asyncio.run(run_ycombinator_scraper(args))
     else:
         parser.print_help()
+    
+    # Keep the main thread alive while the server is running
+    try:
+        server_thread.join()
+    except KeyboardInterrupt:
+        logger.info("Backend stopped by user")
+    except Exception as e:
+        logger.exception(f"Unhandled exception: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     try:
