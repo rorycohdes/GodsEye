@@ -83,3 +83,5 @@
 - [ ] multi tone accents for scrape sources with multiple color in branding
 
 - [ ] setup scraper so that it only gets latest companies from the scrape
+
+- [ ] setup something like a client for the proxy connections
