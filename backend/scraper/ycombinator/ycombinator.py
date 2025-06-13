@@ -490,7 +490,7 @@ if __name__ == "__main__":
     parser.add_argument('--api-key', type=str, help='API key for proxy service')
     parser.add_argument('--cap', type=int, default=50, help='Maximum number of companies to scrape per run (default: 50)')
     parser.add_argument('--show-live', action='store_true', default=True, help='Show companies as they are scraped (live mode) - enabled by default')
-    parser.add_argument('--no-db', action='store_true', help='Disable database insertion (save to JSON only)')
+    parser.add_argument('--no-db', action='store_true', help='Disable database insertion, embeddings, and AI insights (save to JSON only)')
     parser.add_argument('--table-name', type=str, help='Database table name (uses config default if not specified)')
     parser.add_argument('--no-ai', action='store_true', help='Disable AI insights generation')
     parser.add_argument('--no-embeddings', action='store_true', help='Disable embedding generation')
@@ -501,10 +501,17 @@ if __name__ == "__main__":
     settings = get_settings()
     
     # Override settings based on args
-    if args.no_ai:
+    # If --no-db is used, disable both AI insights and embeddings
+    if args.no_db:
         settings.scraper.enable_ai_insights = False
-    if args.no_embeddings:
         settings.scraper.enable_embeddings = False
+        print("🔕 Database, AI insights, and embeddings disabled (--no-db mode)")
+    else:
+        # Otherwise, respect individual flags
+        if args.no_ai:
+            settings.scraper.enable_ai_insights = False
+        if args.no_embeddings:
+            settings.scraper.enable_embeddings = False
     
     table_name = args.table_name or settings.scraper.default_table_name
     
@@ -526,8 +533,8 @@ if __name__ == "__main__":
     print(f"   🔄 Periodic mode: {'No' if args.once else 'Yes'}")
     print(f"   👁️  Live display: {'Yes' if args.show_live else 'No'}")
     print(f"   💾 Database insertion: {'No' if args.no_db else 'Yes'}")
-    print(f"   🤖 AI insights: {'Yes' if settings.scraper.enable_ai_insights else 'No'}")
-    print(f"   🎯 Embeddings: {'Yes' if settings.scraper.enable_embeddings else 'No'}")
+    print(f"   🤖 AI insights: {'No' if args.no_db or args.no_ai else 'Yes'}")
+    print(f"   🎯 Embeddings: {'No' if args.no_db or args.no_embeddings else 'Yes'}")
     if not args.no_db:
         print(f"   🗄️  Database table: {table_name}")
     print(f"   🔗 Proxy retry attempts: 3")
