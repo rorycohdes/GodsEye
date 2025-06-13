@@ -66,16 +66,20 @@
 
 - [✔️] Let the cards have their own page when you click the parent element of the card
 
-- [ ] Use lorem Ipsum to populate the other fields of the card
+- [✔️ ] Use lorem Ipsum to populate the other fields of the card
 
-- [ ] communicate with local deepseek and make the system prompts for each field of the cards
+- [✔️ ] communicate with local deepseek and make the system prompts for each field of the cards
 
-- [ ] a column that stores newly ai created field values
+- [ ✔️] a column that stores newly ai created field values
 
 - [ ] find the perfect system prompt for deepseek
 
-- [ ] set up an etl pipeline
+- [ ] set up an etl pipeline or use crawl for ai and skip the transform step of etl
 
 - [ ] make your project agentic by using vercel ai sdk
 
 - [ ] make sure that whenever a scrape occurs it's only new companies
+
+- [ ] multi tone accents for scrape sources with multiple color in branding
+
+- [ ] setup scraper so that it only gets latest companies from the scrape
